@@ -1,0 +1,120 @@
+[
+    {
+        "_id": "010313131",
+        "email": "whitehouse@imuricu.com",
+        "name": "Donal D. Trump",
+        "password": "SHA256 HASH",
+        "gender": false,
+        "organization": "Hutech University",
+        "phone": "0xxxxxxxxx",
+        "avatar_path": "/Img/abc.xyz",
+        "last_update": 10121313,
+        "playHistory": ["Objectid(010313131)"],
+        "deleted": false
+    },
+    {
+        "_id": "010313131",
+        "_id_author": "010313131",
+        "title": "Ai thông minh nhất",
+        "questions":[
+            {
+                "_id": "1",
+                "quiz": "Cái abc xyz này là gì?",
+                "ans": [
+                    {
+                        "_id": "1",
+                        "content": "Con cá"
+                    },
+                    {
+                        "_id": "2",
+                        "content": "Con chim"
+                    },
+                    {
+                        "_id": "3",
+                        "content": "Con chích chòe"
+                    },
+                    {
+                        "_id": "4",
+                        "content": "Con lợn"
+                    }
+                ],
+                "correct_id": "1",
+                "correct_point": 100,
+                "incorrect_point": -25,
+                "duration": 60,
+                "img_path": "./Images/"
+            },
+            {
+                "_id": "2",
+                "quiz": "Cái abc xyz này là gì?",
+                "ans": [
+                    {
+                        "_id": "1",
+                        "content": "Con cá"
+                    },
+                    {
+                        "_id": "2",
+                        "content": "Con chim"
+                    },
+                    {
+                        "_id": "3",
+                        "content": "Con chích chòe"
+                    },
+                    {
+                        "_id": "4",
+                        "content": "Con lợn"
+                    }
+                ],
+                "correct_id": "1",
+                "correct_point": 100,
+                "incorrect_point": -25
+            },
+            {
+                "_id": "3",
+                "quiz": "Cái abc xyz này là gì?",
+                "ans": [
+                    {
+                        "_id": "1",
+                        "content": "Con cá"
+                    },
+                    {
+                        "_id": "2",
+                        "content": "Con chim"
+                    },
+                    {
+                        "_id": "3",
+                        "content": "Con chích chòe"
+                    },
+                    {
+                        "_id": "4",
+                        "content": "Con lợn"
+                    }
+                ],
+                "correct_id": "1",
+                "correct_point": 100,
+                "incorrect_point": -25
+            }
+        ],
+        "description": "Kỳ thi giải trắc nghiệm do abc tổ chức ngày xyz để buyển chọn bla bla bla",
+        "public": true,
+        "tags": ["Toán", "Child", "Ez"],
+        "deleted": false
+    },
+    {
+        "_id": "010313131",
+        "id_quest": "Objectid(010313131)",
+        "id_host":"Objectid(010313131)",
+        "players":[
+            {
+                "username": "username",
+                "answer": [1,2,3,4,0],
+                "time": 11010010
+            },
+            {
+                "username": "username",
+                "answer": [1,2,3,4,0],
+                "time": 11010010
+            }
+        ]
+    }
+]

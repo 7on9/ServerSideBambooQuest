@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>test</title>
+</head>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <script>
+        var socket = io.connect("http://localhost:2409/");
+        
+        // alert(socket.id);
+
+        // socket.emit("joinRoom", "long");
+        // for(let i = 1; i <= 10; i++)
+        //     socket.emit("messageFromClient", "long", i);
+        // socket.on("messageFromSever", (message)=>{
+        //     document.getElementById("rec").innerHTML += "<p>" + message + "</p>";
+        // });
+        // //socket.emit("user", "aaaaaa");
+        // // socket.emit("register", "aaaaaa","aba");/p>
+
+        // socket.on("result", (event, result) => {
+        //     if(result)
+        //         alert(event + " successfully!");
+        //     else
+        //     {
+        //         alert(event + " fail!");
+        //     }
+        // });
+
+        // socket.emit("login", "aaa","aba");
+    </script>
+    <h1 id="rec"></h1>
+</body>
+
+</html>
