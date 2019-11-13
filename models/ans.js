@@ -1,8 +1,8 @@
-let mongoose = require('mongoose');
+let mongoose = require('mongoose')
 
 let ansSchema = new mongoose.Schema({
   _id: Number,
-  content: String
-});
+  content: String,
+})
 
-module.exports = mongoose.model('ans', ansSchema);
+module.exports = mongoose.model('ans', ansSchema)

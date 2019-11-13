@@ -1,5 +1,8 @@
-let mongoose = require('mongoose');
-let Ans = require("./ans");
+let mongoose = require('mongoose')
+let Ans = require('./ans')
+
+let Schema = mongoose.Schema,
+  ObjectId = Schema.ObjectId
 
 let questionSchema = new mongoose.Schema({
   _id: Number,
@@ -9,7 +12,12 @@ let questionSchema = new mongoose.Schema({
   correct_point: Number,
   incorrect_point: Number,
   duration: Number,
-  img: String
-});
+  img_path: String,
+  category: [ObjectId],
+  nCorrectAnswer: Number,
+  nIncorrectAnswer: Number,
+  like: Number,
+  deleted: Boolean,
+})
 
-module.exports = mongoose.model('question', questionSchema);
+module.exports = mongoose.model('question', questionSchema)
