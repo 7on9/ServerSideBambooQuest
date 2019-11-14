@@ -7,4 +7,5 @@ common/constant/cloudinary.js
 #database.js
 common/constant/database.js
 
-*.package-lock.json
+package-lock.json
+yarn.lock
