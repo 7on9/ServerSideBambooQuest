@@ -210,27 +210,30 @@ let quest = {
     return quest
   },
   //get all quests
-  getPublicQuests: () => {
+  getPublicQuests: limit => {
     return new Promise(async (res, rej) => {
-      Quest.find({ isPublic: true, deleted: false }, (err, quests) => {
-        if (err) {
-          rej(err)
-        } else {
-          let retQuest = []
-          quests.forEach(quest => {
-            let nQuest = {}
-            nQuest._id = quest._id
-            nQuest.title = quest.title
-            nQuest._id_author = quest._id_author
-            nQuest.img_path = quest.img_path
-            nQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
-            nQuest.description = quest.description
-            nQuest.isPublic = quest.isPublic
-            retQuest.push(nQuest)
-          })
-          res(retQuest)
-        }
-      })
+      Quest.find({ isPublic: true, deleted: false })
+        .limit(limit || 25)
+        .skip(limit * 25)
+        .exec((err, quests) => {
+          if (err) {
+            rej(err)
+          } else {
+            let retQuest = []
+            quests.forEach(quest => {
+              let nQuest = {}
+              nQuest._id = quest._id
+              nQuest.title = quest.title
+              nQuest._id_author = quest._id_author
+              nQuest.img_path = quest.img_path
+              nQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
+              nQuest.description = quest.description
+              nQuest.isPublic = quest.isPublic
+              retQuest.push(nQuest)
+            })
+            res(retQuest)
+          }
+        })
     })
   },
 }

@@ -49,10 +49,11 @@ router
   })
   //get all public quests
   .get('/', async (req, res) => {
-    let quests = await quest.getPublicQuests()
+    let { params } = req
+    let quests = await quest.getPublicQuests(params.limit)
     res.status(200).json({
       result: true,
-      quests: quests,
+      quests,
     })
   })
   //create quest

@@ -16,6 +16,13 @@ let isExistEmail = email => {
 }
 
 let user = {
+  /**
+   * TODO: Register account
+   * @param {String} email
+   * @param {String} password
+   * @param {String} name
+   * @param {Function} callback
+   */
   register: async (email, password, name, callback) => {
     email = email.toLowerCase()
     let isEmailUseable = await isExistEmail(email)
@@ -40,6 +47,12 @@ let user = {
         .catch(err => callback(err, null))
     }
   },
+  /**
+   * TODO: Login into server
+   * @param {String} email
+   * @param {String} password
+   * @param {Function} callback
+   */
   login: async (email, password, callback) => {
     password = crypto
       .createHash('sha256')
@@ -78,17 +91,11 @@ let user = {
       return callback(new Error('NOT_FOUND'), null)
     }
   },
-  getBaseInfoOfAmoutUsers: async (amount, callback) => {
-    if (amount > 0) {
-      User.find({})
-        .limit(amount)
-        .select('name', 'dob', 'gender', 'organization', 'avatar_path')
-        .exec(callback)
-    } else {
-      User.find({})
-        .select('name', 'dob', 'gender', 'organization', 'avatar_path')
-        .exec(callback)
-    }
+  getBaseInfoOfAmoutUsers: async (limit, callback) => {
+    User.find({})
+      .limit(limit || 25)
+      .select('name', 'dob', 'gender', 'organization', 'avatar_path')
+      .exec(callback)
   },
   updateInfo: (user, callback) => {
     user.password = crypto
