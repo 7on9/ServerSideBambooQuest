@@ -8,6 +8,9 @@ let constant = require('../common/constant/event')
 let Utility = require('../common/utility')
 
 let quest = {
+  getQuestsOfUser: (idUser, callback) => {
+    Quest.find({ _id_author: idUser }, callback)
+  },
   getInfo: (idUser, idQuest, callback) => {
     Quest.findOne({ _id_author: idUser, _id: idQuest }, callback)
   },
@@ -67,7 +70,7 @@ let quest = {
     Utility.verifyToken(token, (err, user) => {
       if (user) {
         Quest.findById(idQuest, (err, quest) => {
-          if (quest && !quest.isPublic && quest._id_author != user._id) {
+          if (quest && !quest.isPublic && quest._id_author !== user._id) {
             return callback(new Error("DON'T HAVE PERMISSION"), null)
           } else {
             let newGame = new Game({

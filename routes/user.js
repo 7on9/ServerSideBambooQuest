@@ -58,6 +58,12 @@ router
   .post('/verify', async (req, res) => {
     if (req.headers.token) {
       Utility.verifyToken(req.headers.token, (err, user) => {
+        if (err) {
+          res.status(401).send({
+            result: false,
+          })
+          return
+        }
         user = user._doc
         if (user) {
           delete user.password
@@ -65,10 +71,6 @@ router
             result: true,
             token: req.headers.token,
             info: user,
-          })
-        } else {
-          res.status(401).send({
-            result: false,
           })
         }
       })

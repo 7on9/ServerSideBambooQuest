@@ -5,6 +5,20 @@ let Cloudinary = require('../controllers/cloudinary')
 
 router
   //getInfo - owner
+  .get('/myQuests', async (req, res) => {
+    Utility.verifyToken(req.headers.token, (err, user) => {
+      if (user) {
+        quest.getQuestsOfUser(user._id, (error, myQuests) => {
+          if (error) {
+            res.status(404)
+          } else {
+            res.status(200).send({ myQuests })
+          }
+        })
+      }
+    })
+  })
+  // Get all quests of account
   .get('/my/:id', async (req, res) => {
     Utility.verifyToken(req.headers.token, (err, user) => {
       if (user) {

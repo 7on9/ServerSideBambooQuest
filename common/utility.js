@@ -46,12 +46,10 @@ module.exports = {
         let tokenByEmail = await mapToken.get(decodedToken.email)
         if (tokenByEmail && tokenByEmail.indexOf(token) >= 0) {
           User.findOne({ email: decodedToken.email }, (err, user) => {
-            if (err) {
+            if (err || !user) {
               return callback(new Error(ERROR.USER.NOT_EXIST), null)
             } else {
-              if (user) {
-                return callback(null, user)
-              }
+              return callback(null, user)
             }
           })
         } else {
