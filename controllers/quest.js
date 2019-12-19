@@ -190,7 +190,7 @@ let quest = {
   getPublicInfoQuest: idQuest => {
     return new Promise(async (res, rej) => {
       Quest.findOne({ _id: idQuest, isPublic: true, deleted: false }, (err, quest) => {
-        if (err) {
+        if (err || !quest) {
           rej(err)
         } else {
           let retQuest = {}
