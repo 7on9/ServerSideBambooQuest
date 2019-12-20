@@ -26,7 +26,6 @@ exports = module.exports = io => {
 
       //player join game
       socket.on(GAME.JOIN, (gameCode, username, token) => {
-        console.log(`Request join - ${gameCode}`)
         let idGame = Utility.getIdGame(gameCode)
         if (idGame == null) {
           console.log(`Join - ${idGame} - not found`)
@@ -51,6 +50,7 @@ exports = module.exports = io => {
                 io.to(idGame).emit(GAME.NEW_PLAYER, {
                   player: { username, score: 0, time: 0 },
                 })
+                console.log(`Game join - ${gameCode} - player: ${scoreBoard.length}`)
                 socket.join(idGame)
               }
             })
@@ -61,6 +61,7 @@ exports = module.exports = io => {
       //starting the game
       socket.on(GAME.BEGIN, idGame => {
         //emit to room game except sender
+        console.log(`Game begin: ${idGame}`)
         io.to(idGame).emit(GAME.BEGIN)
       })
 
@@ -116,11 +117,17 @@ exports = module.exports = io => {
       //end game
       socket.on(GAME.END, idGame => {
         //handler result
-        socket.to(idGame).emit(GAME.END)
+        let scoreBoard = gamesScoreBoards.get(idGame.toString())
+        socket.to(idGame).emit(GAME.END, scoreBoard)
         Utility.endGame(idGame)
+        console.log(`End game: ${idGame}`)
+        let rooms = io.sockets.adapter.sids[idGame]
+        for (let room in rooms) {
+          socket.leave(room)
+        }
         // io.sockets.clients(idGame).map(player => {
-        //   player.leave(idGame);
-        // });
+        //   player.leave(idGame)
+        // })
       })
 
       socket.on('disconnect', () => {
