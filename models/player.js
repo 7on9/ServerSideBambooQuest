@@ -1,6 +1,7 @@
-let mongoose = require('mongoose')
+const { PLAYER } = require('../common/constant/database').SCHEMA
+const mongoose = require('mongoose')
 
-let playerSchema = new mongoose.Schema(
+const playerSchema = new mongoose.Schema(
   {
     username: String,
     ans: [Number],
@@ -9,4 +10,4 @@ let playerSchema = new mongoose.Schema(
   { _id: false }
 )
 
-module.exports = mongoose.model('player', playerSchema)
+module.exports = mongoose.model(PLAYER, playerSchema)

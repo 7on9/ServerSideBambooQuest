@@ -1,3 +1,5 @@
+const dotenv = require('dotenv').config()
+dotenv.load
 //express
 let express = require('express')
 let bodyparser = require('body-parser')
@@ -7,10 +9,10 @@ let app = express()
 let router = require('./routes/router')
 
 //mongoDb
-let db = require('./common/connection')
+require('./common/connection')
 
-// app.use(bodyparser.urlencoded({ limit: '50mb', extended: true }))
-app.use(bodyparser.json({ limit: '50mb', extended: true }))
+// app.use(bodyparser.urlencoded({ limit: '10mb', extended: true }))
+app.use(bodyparser.json({ limit: '10mb', extended: true }))
 
 // app.use(express.urlencoded({ extended: false }));
 // // app.use(bodyparser.urlencoded({ extended: true }));

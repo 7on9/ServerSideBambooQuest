@@ -86,7 +86,7 @@ router
     } else {
       res.status(401).send({
         result: false,
-        detail: 'UnAuthorized',
+        detail: 'UNAUTHORIZED',
       })
     }
   })
@@ -97,7 +97,7 @@ router
         if (err) {
           res.status(401).json({
             result: false,
-            detail: 'query error',
+            detail: 'QUERY_ERROR',
           })
         } else {
           res.status(200).json({
@@ -109,7 +109,7 @@ router
     } else {
       res.status(401).send({
         result: false,
-        detail: 'UnAuthorized',
+        detail: 'UNAUTHORIZED',
       })
     }
   })
@@ -118,7 +118,7 @@ router
       if (error) {
         res.status(401).json({
           result: false,
-          detail: 'UnAuthorized',
+          detail: 'UNAUTHORIZED',
         })
       } else {
         res.status(200).json({

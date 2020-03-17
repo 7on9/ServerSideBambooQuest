@@ -1,17 +1,17 @@
-let DBCONST = require('../common/constant/database')
-let mongoose = require('mongoose')
-let Player = require('./player')
+const { GAME } = require('../common/constant/database').SCHEMA
+const mongoose = require('mongoose')
+const Player = require('./player')
 
-let Schema = mongoose.Schema,
+const Schema = mongoose.Schema,
   ObjectId = Schema.ObjectId
 
-let gameSchema = new mongoose.Schema(
+const gameSchema = new mongoose.Schema(
   {
     id_quest: ObjectId,
     id_host: ObjectId,
     players: [Player.schema],
   },
-  { collection: DBCONST.DATABASE.COLLECTION.GAME }
+  { collection: GAME }
 )
 
-module.exports = mongoose.model(DBCONST.DATABASE.COLLECTION.GAME, gameSchema)
+module.exports = mongoose.model(GAME, gameSchema)

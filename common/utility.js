@@ -1,24 +1,24 @@
 // let crypto = require('crypto');
 //key = gameCode; val = idGame
 let ERROR = require('./constant/error')
-let KEY = require('../common/constant/key')
 let User = require('../models/user')
 let gameCode = 1000
 let jwt = require('jsonwebtoken')
 let mapCodeGame = new Map()
 let mapIdGame = new Map()
 let mapToken = new Map()
+const { CFS, SECRET } = process.env
 
 module.exports = {
   computingJWT: (email, callback) => {
     let payload = {
       email: email,
-      confess: KEY.CONFESS,
-      key: 'your name (full)',
+      confess: CFS,
+      key: 'your name',
       exp: Date.now() + 43200000,
     }
     //exp in 12h
-    let secretKey = KEY.SECRET
+    let secretKey = SECRET
     jwt.sign(payload, secretKey, { algorithm: 'HS256' }, callback)
   },
   getToken: email => {
@@ -37,7 +37,7 @@ module.exports = {
     mapToken.delete(email)
   },
   verifyToken: async (token, callback) => {
-    let decodedToken = await jwt.decode(token, KEY.SECRET)
+    let decodedToken = await jwt.decode(token, SECRET)
     if (decodedToken) {
       if (decodedToken.exp < Date.now()) {
         mapToken.delete(decodedToken.email)

@@ -1,10 +1,10 @@
-let DBCONST = require('../common/constant/database')
-let mongoose = require('mongoose')
+const { USER } = require('../common/constant/database').SCHEMA
+const mongoose = require('mongoose')
 
-let Schema = mongoose.Schema,
+const Schema = mongoose.Schema,
   ObjectId = Schema.ObjectId
 
-let userSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     email: String,
     name: String,
@@ -15,10 +15,10 @@ let userSchema = new mongoose.Schema(
     phone: String,
     avatar_path: String,
     last_update: Number,
-    gameHistory: [ObjectId],
+    game_history: [ObjectId],
     deleted: Boolean,
   },
-  { collection: DBCONST.DATABASE.COLLECTION.USER }
+  { collection: USER }
 )
 
-module.exports = mongoose.model(DBCONST.DATABASE.COLLECTION.USER, userSchema)
+module.exports = mongoose.model(USER, userSchema)

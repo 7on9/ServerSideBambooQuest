@@ -2,6 +2,7 @@ let crypto = require('crypto')
 let User = require('../models/user')
 let Utility = require('../common/utility')
 let ERROR = require('../common/constant/event').ERROR
+
 let isExistEmail = email => {
   return new Promise((resolve, reject) => {
     User.find({ email: email, deleted: false }, (err, res) => {
@@ -38,7 +39,7 @@ let user = {
         name: name,
         password: password,
         last_update: Date.now(),
-        gameHistory: [],
+        game_history: [],
         deleted: false,
       })
       newUser
@@ -59,24 +60,21 @@ let user = {
       .update(password)
       .digest('hex')
     email = email.toLowerCase()
-    User.findOne(
-      { email: email, password: password, deleted: false },
-      (err, res) => {
-        if (res != null) {
-          let token = Utility.getToken(res.email)
-          if (token) {
-            return callback(null, { user: { ...res._doc }, token: token[0] })
-          } else {
-            Utility.computingJWT(email, (err, newToken) => {
-              Utility.addNewTokenForUser(email, newToken)
-              return callback(null, { user: { ...res._doc }, token: newToken })
-            })
-          }
+    User.findOne({ email: email, password: password, deleted: false }, (err, res) => {
+      if (res != null) {
+        let token = Utility.getToken(res.email)
+        if (token) {
+          return callback(null, { user: res._doc, token: token[0] })
         } else {
-          callback(err, null)
+          Utility.computingJWT(email, (err, newToken) => {
+            Utility.addNewTokenForUser(email, newToken)
+            return callback(null, { user: res._doc, token: newToken })
+          })
         }
+      } else {
+        callback(err, null)
       }
-    )
+    })
   },
   logout: async (token, callback) => {
     User.findOneAndUpdate({ token: token }, { token: '' }, callback)
