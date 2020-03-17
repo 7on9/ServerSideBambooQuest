@@ -5,6 +5,20 @@ let Cloudinary = require('../controllers/cloudinary')
 
 router
   //getInfo - owner
+  .get('/myQuests', async (req, res) => {
+    Utility.verifyToken(req.headers.token, (err, user) => {
+      if (user) {
+        quest.getQuestsOfUser(user._id, (error, myQuests) => {
+          if (error) {
+            res.status(404)
+          } else {
+            res.status(200).send({ myQuests })
+          }
+        })
+      }
+    })
+  })
+  // Get all quests of account
   .get('/my/:id', async (req, res) => {
     Utility.verifyToken(req.headers.token, (err, user) => {
       if (user) {
@@ -13,7 +27,7 @@ router
             if (err) {
               res.status(404).json({
                 result: false,
-                detail: 'query error',
+                detail: 'QUERY_ERROR',
               })
             } else {
               res.status(200).json({
@@ -25,13 +39,13 @@ router
         } else {
           res.status(404).json({
             result: false,
-            detail: 'Query error',
+            detail: 'QUERY_ERROR',
           })
         }
       } else {
         res.status(401).send({
           result: false,
-          detail: 'UnAuthorized',
+          detail: 'UNAUTHORIZED',
         })
       }
     })
@@ -49,10 +63,11 @@ router
   })
   //get all public quests
   .get('/', async (req, res) => {
-    let quests = await quest.getPublicQuests()
+    let { params } = req
+    let quests = await quest.getPublicQuests(params.limit)
     res.status(200).json({
       result: true,
-      quests: quests,
+      quests,
     })
   })
   //create quest
@@ -60,14 +75,14 @@ router
     let newQuest = JSON.parse(req.body.newQuest)
     Utility.verifyToken(req.headers.token, (err, user) => {
       if (user) {
-        if (newQuest.title && newQuest.description && newQuest.isPublic != null) {
+        if (newQuest.title && newQuest.description && newQuest.is_public != null) {
           Cloudinary.upload(newQuest.img_path, (err, url) => {
             newQuest.img_path = url
             quest.createQuest(newQuest, user, (err, result) => {
               if (err) {
                 res.status(404).json({
                   result: false,
-                  detail: 'query error',
+                  detail: 'QUERY_ERROR',
                 })
               } else {
                 res.status(200).json({
@@ -80,13 +95,13 @@ router
         } else {
           res.status(404).json({
             result: false,
-            detail: 'Query error',
+            detail: 'QUERY_ERROR',
           })
         }
       } else {
         res.status(401).send({
           result: false,
-          detail: 'UnAuthorized',
+          detail: 'UNAUTHORIZED',
         })
       }
     })
@@ -111,7 +126,7 @@ router
               if (err) {
                 res.status(404).json({
                   result: false,
-                  detail: 'query error',
+                  detail: 'QUERY_ERROR',
                 })
               } else {
                 res.status(200).json({
@@ -124,13 +139,13 @@ router
         } else {
           res.status(404).json({
             result: false,
-            detail: 'Query error',
+            detail: 'QUERY_ERROR',
           })
         }
       } else {
         res.status(401).send({
           result: false,
-          detail: 'UnAuthorized',
+          detail: 'UNAUTHORIZED',
         })
       }
     })
@@ -155,7 +170,7 @@ router
               if (err) {
                 res.status(404).json({
                   result: false,
-                  detail: 'query error',
+                  detail: 'QUERY_ERROR',
                 })
               } else {
                 res.status(200).json({
@@ -168,13 +183,13 @@ router
         } else {
           res.status(404).json({
             result: false,
-            detail: 'Query error',
+            detail: 'QUERY_ERROR',
           })
         }
       } else {
         res.status(401).send({
           result: false,
-          detail: 'UnAuthorized',
+          detail: 'UNAUTHORIZED',
         })
       }
     })
@@ -186,7 +201,7 @@ router
         if (err) {
           res.status(404).json({
             result: false,
-            detail: 'query error',
+            detail: 'QUERY_ERROR',
           })
         } else {
           let code = Utility.createGameCode(result)
@@ -200,7 +215,7 @@ router
     } else {
       res.status(404).json({
         result: false,
-        detail: 'Query error',
+        detail: 'QUERY_ERROR',
       })
     }
   })
@@ -224,7 +239,7 @@ router
     } else {
       res.status(404).json({
         result: false,
-        detail: 'Query error',
+        detail: 'QUERY_ERROR',
       })
     }
   })

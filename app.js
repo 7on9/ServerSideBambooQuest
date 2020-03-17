@@ -1,16 +1,18 @@
+const dotenv = require('dotenv').config()
+dotenv.load
 //express
 let express = require('express')
 let bodyparser = require('body-parser')
 let app = express()
 
 //routes to api
-let routes = require('./routes')
+let router = require('./routes/router')
 
 //mongoDb
-let db = require('./common/connection')
+require('./common/connection')
 
-app.use(bodyparser.urlencoded({ limit: '50mb', extended: true }))
-app.use(bodyparser.json({ limit: '50mb', extended: true }))
+// app.use(bodyparser.urlencoded({ limit: '10mb', extended: true }))
+app.use(bodyparser.json({ limit: '10mb', extended: true }))
 
 // app.use(express.urlencoded({ extended: false }));
 // // app.use(bodyparser.urlencoded({ extended: true }));
@@ -18,7 +20,6 @@ app.use(bodyparser.json({ limit: '50mb', extended: true }))
 
 //config http header request
 app.use(function(req, res, next) {
-  // Website you wish to allow to connect
   // Website you wish to allow to connect
   // let allowedOrigins = ['http://localhost:4200', 'http://localhost:3330', "https://xcdc.herokuapp.com/", "http://xcdc.ueuo.com/"];
   // let origin = req.headers.origin;
@@ -44,7 +45,7 @@ app.use(function(req, res, next) {
   next()
 })
 
-app.use('/', routes)
+app.use('/api', router)
 app.all('*', function(req, res) {
   res.json({
     status: 404,

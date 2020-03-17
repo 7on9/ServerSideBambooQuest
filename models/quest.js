@@ -1,22 +1,24 @@
-let DBCONST = require('../common/constant/database')
-let mongoose = require('mongoose')
-let Questions = require('./question')
+const { QUEST } = require('../common/constant/database').SCHEMA
+const mongoose = require('mongoose')
+const Questions = require('./question')
 
-let Schema = mongoose.Schema,
+const Schema = mongoose.Schema,
   ObjectId = Schema.ObjectId
 
-let questSchema = new mongoose.Schema(
+const questSchema = new mongoose.Schema(
   {
-    _id_author: ObjectId,
+    id_author: ObjectId,
     title: String,
     questions: [Questions.schema],
     description: String,
     // game: [ObjectId],
+    category: [ObjectId],
     img_path: String,
-    isPublic: Boolean,
+    is_public: Boolean,
     deleted: Boolean,
+    like: [ObjectId],
   },
-  { collection: DBCONST.DATABASE.COLLECTION.QUEST }
+  { collection: QUEST }
 )
 
-module.exports = mongoose.model(DBCONST.DATABASE.COLLECTION.QUEST, questSchema)
+module.exports = mongoose.model(QUEST, questSchema)

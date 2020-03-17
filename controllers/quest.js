@@ -8,16 +8,19 @@ let constant = require('../common/constant/event')
 let Utility = require('../common/utility')
 
 let quest = {
+  getQuestsOfUser: (idUser, callback) => {
+    Quest.find({ id_author: idUser }, callback)
+  },
   getInfo: (idUser, idQuest, callback) => {
-    Quest.findOne({ _id_author: idUser, _id: idQuest }, callback)
+    Quest.findOne({ id_author: idUser, _id: idQuest }, callback)
   },
   createQuest: (nQuest, user, callback) => {
     let newQuest = new Quest({
-      _id_author: user._id,
+      id_author: user._id,
       title: nQuest.title,
       questions: [],
       description: nQuest.description,
-      isPublic: nQuest.isPublic,
+      is_public: nQuest.is_public,
       img_path: nQuest.img_path,
       deleted: false,
     })
@@ -29,7 +32,7 @@ let quest = {
   editQuest: (nQuest, user, callback) => {},
   addQuestion: (nQuestion, idUser, callback) => {
     Quest.findById(nQuestion._id, (err, fQuest) => {
-      if (fQuest._id_author.toString() != idUser) {
+      if (fQuest.id_author.toString() != idUser) {
         callback(true, null)
       } else {
         let newQuestion = new Question({
@@ -42,8 +45,8 @@ let quest = {
           duration: nQuestion.duration,
           img_path: nQuestion.img_path,
           category: nQuestion.category,
-          nCorrectAnswer: 0,
-          nIncorrectAnswer: 0,
+          n_correct_answer: 0,
+          n_incorrect_answer: 0,
           like: 0,
           deleted: false,
         })
@@ -67,7 +70,7 @@ let quest = {
     Utility.verifyToken(token, (err, user) => {
       if (user) {
         Quest.findById(idQuest, (err, quest) => {
-          if (quest && !quest.isPublic && quest._id_author != user._id) {
+          if (quest && !quest.is_public && quest.id_author !== user._id) {
             return callback(new Error("DON'T HAVE PERMISSION"), null)
           } else {
             let newGame = new Game({
@@ -78,7 +81,7 @@ let quest = {
             newGame
               .save()
               .then(game => {
-                user.gameHistory.push(game._id)
+                user.game_history.push(game._id)
                 user
                   .save()
                   .catch(err => console.log(err))
@@ -129,7 +132,7 @@ let quest = {
                 if (user._id.toString() == game.id_host.toString()) {
                   return callback(null, true)
                 } else {
-                  user.gameHistory.push(game._id)
+                  user.game_history.push(game._id)
                   user.save().then(() => callback(null, true))
                 }
               }
@@ -186,18 +189,18 @@ let quest = {
   //get info quests
   getPublicInfoQuest: idQuest => {
     return new Promise(async (res, rej) => {
-      Quest.findOne({ _id: idQuest, isPublic: true, deleted: false }, (err, quest) => {
-        if (err) {
+      Quest.findOne({ _id: idQuest, is_public: true, deleted: false }, (err, quest) => {
+        if (err || !quest) {
           rej(err)
         } else {
           let retQuest = {}
-          retQuest._id_author = quest._id_author
+          retQuest.id_author = quest.id_author
           retQuest._id = quest._id
           retQuest.title = quest.title
           retQuest.img_path = quest.img_path
           retQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
           retQuest.description = quest.description
-          retQuest.isPublic = quest.isPublic
+          retQuest.is_public = quest.is_public
           res(retQuest)
         }
       })
@@ -210,27 +213,30 @@ let quest = {
     return quest
   },
   //get all quests
-  getPublicQuests: () => {
+  getPublicQuests: limit => {
     return new Promise(async (res, rej) => {
-      Quest.find({ isPublic: true, deleted: false }, (err, quests) => {
-        if (err) {
-          rej(err)
-        } else {
-          let retQuest = []
-          quests.forEach(quest => {
-            let nQuest = {}
-            nQuest._id = quest._id
-            nQuest.title = quest.title
-            nQuest._id_author = quest._id_author
-            nQuest.img_path = quest.img_path
-            nQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
-            nQuest.description = quest.description
-            nQuest.isPublic = quest.isPublic
-            retQuest.push(nQuest)
-          })
-          res(retQuest)
-        }
-      })
+      Quest.find({ is_public: true, deleted: false })
+        .limit(limit || 25)
+        .skip(limit * 25)
+        .exec((err, quests) => {
+          if (err) {
+            rej(err)
+          } else {
+            let retQuest = []
+            quests.forEach(quest => {
+              let nQuest = {}
+              nQuest._id = quest._id
+              nQuest.title = quest.title
+              nQuest.id_author = quest.id_author
+              nQuest.img_path = quest.img_path
+              nQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
+              nQuest.description = quest.description
+              nQuest.is_public = quest.is_public
+              retQuest.push(nQuest)
+            })
+            res(retQuest)
+          }
+        })
     })
   },
 }

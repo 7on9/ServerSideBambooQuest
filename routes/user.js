@@ -4,7 +4,7 @@ let Utility = require('../common/utility')
 
 router
   //verify data before call this api
-  .post('/register', (req, res, next) => {
+  .post('/register', (req, res) => {
     if (!req.body.email || !req.body.password) {
       res.status(400).send({
         result: false,
@@ -24,7 +24,7 @@ router
       })
     }
   })
-  .post('/login', (req, res, next) => {
+  .post('/login', (req, res) => {
     user.login(req.body.email, req.body.password, (error, result) => {
       if (error || !result) {
         res.status(401).send({
@@ -41,7 +41,7 @@ router
       }
     })
   })
-  .post('/logout', (req, res, next) => {
+  .post('/logout', (req, res) => {
     user.logout(req.headers.token, (error, result) => {
       // console.log(error +  " "+result);
       if (error || !result) {
@@ -55,9 +55,15 @@ router
       }
     })
   })
-  .post('/verify', async (req, res, next) => {
+  .post('/verify', async (req, res) => {
     if (req.headers.token) {
       Utility.verifyToken(req.headers.token, (err, user) => {
+        if (err) {
+          res.status(401).send({
+            result: false,
+          })
+          return
+        }
         user = user._doc
         if (user) {
           delete user.password
@@ -66,15 +72,11 @@ router
             token: req.headers.token,
             info: user,
           })
-        } else {
-          res.status(401).send({
-            result: false,
-          })
         }
       })
     }
   })
-  .get('/info', async (req, res, next) => {
+  .get('/info', async (req, res) => {
     let verifyToken = await Utility.verifyToken(req.headers.token)
     if (verifyToken) {
       res.status(200).json({
@@ -84,18 +86,18 @@ router
     } else {
       res.status(401).send({
         result: false,
-        detail: 'UnAuthorized',
+        detail: 'UNAUTHORIZED',
       })
     }
   })
-  .post('/info', async (req, res, next) => {
+  .post('/info', async (req, res) => {
     let verifyToken = await Utility.verifyToken(req.headers.token)
     if (verifyToken) {
       user.update(req.body, (err, updated) => {
         if (err) {
           res.status(401).json({
             result: false,
-            detail: 'query error',
+            detail: 'QUERY_ERROR',
           })
         } else {
           res.status(200).json({
@@ -107,16 +109,16 @@ router
     } else {
       res.status(401).send({
         result: false,
-        detail: 'UnAuthorized',
+        detail: 'UNAUTHORIZED',
       })
     }
   })
-  .delete('/delete', (req, res, next) => {
+  .delete('/delete', (req, res) => {
     user.deleteAccount(req.headers.token, (error, result) => {
       if (error) {
         res.status(401).json({
           result: false,
-          detail: 'UnAuthorized',
+          detail: 'UNAUTHORIZED',
         })
       } else {
         res.status(200).json({

@@ -2,6 +2,7 @@ let crypto = require('crypto')
 let User = require('../models/user')
 let Utility = require('../common/utility')
 let ERROR = require('../common/constant/event').ERROR
+
 let isExistEmail = email => {
   return new Promise((resolve, reject) => {
     User.find({ email: email, deleted: false }, (err, res) => {
@@ -16,6 +17,13 @@ let isExistEmail = email => {
 }
 
 let user = {
+  /**
+   * TODO: Register account
+   * @param {String} email
+   * @param {String} password
+   * @param {String} name
+   * @param {Function} callback
+   */
   register: async (email, password, name, callback) => {
     email = email.toLowerCase()
     let isEmailUseable = await isExistEmail(email)
@@ -31,7 +39,7 @@ let user = {
         name: name,
         password: password,
         last_update: Date.now(),
-        gameHistory: [],
+        game_history: [],
         deleted: false,
       })
       newUser
@@ -40,30 +48,33 @@ let user = {
         .catch(err => callback(err, null))
     }
   },
+  /**
+   * TODO: Login into server
+   * @param {String} email
+   * @param {String} password
+   * @param {Function} callback
+   */
   login: async (email, password, callback) => {
     password = crypto
       .createHash('sha256')
       .update(password)
       .digest('hex')
     email = email.toLowerCase()
-    User.findOne(
-      { email: email, password: password, deleted: false },
-      (err, res) => {
-        if (res != null) {
-          let token = Utility.getToken(res.email)
-          if (token) {
-            return callback(null, { user: { ...res._doc }, token: token[0] })
-          } else {
-            Utility.computingJWT(email, (err, newToken) => {
-              Utility.addNewTokenForUser(email, newToken)
-              return callback(null, { user: { ...res._doc }, token: newToken })
-            })
-          }
+    User.findOne({ email: email, password: password, deleted: false }, (err, res) => {
+      if (res != null) {
+        let token = Utility.getToken(res.email)
+        if (token) {
+          return callback(null, { user: res._doc, token: token[0] })
         } else {
-          callback(err, null)
+          Utility.computingJWT(email, (err, newToken) => {
+            Utility.addNewTokenForUser(email, newToken)
+            return callback(null, { user: res._doc, token: newToken })
+          })
         }
+      } else {
+        callback(err, null)
       }
-    )
+    })
   },
   logout: async (token, callback) => {
     User.findOneAndUpdate({ token: token }, { token: '' }, callback)
@@ -78,17 +89,11 @@ let user = {
       return callback(new Error('NOT_FOUND'), null)
     }
   },
-  getBaseInfoOfAmoutUsers: async (amount, callback) => {
-    if (amount > 0) {
-      User.find({})
-        .limit(amount)
-        .select('name', 'dob', 'gender', 'organization', 'avatar_path')
-        .exec(callback)
-    } else {
-      User.find({})
-        .select('name', 'dob', 'gender', 'organization', 'avatar_path')
-        .exec(callback)
-    }
+  getBaseInfoOfAmoutUsers: async (limit, callback) => {
+    User.find({})
+      .limit(limit || 25)
+      .select('name', 'dob', 'gender', 'organization', 'avatar_path')
+      .exec(callback)
   },
   updateInfo: (user, callback) => {
     user.password = crypto

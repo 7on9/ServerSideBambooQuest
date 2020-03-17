@@ -1,8 +1,9 @@
-let mongoose = require('mongoose')
+const { ANS } = require('../common/constant/database').SCHEMA
+const mongoose = require('mongoose')
 
-let ansSchema = new mongoose.Schema({
+const ansSchema = new mongoose.Schema({
   _id: Number,
   content: String,
 })
 
-module.exports = mongoose.model('ans', ansSchema)
+module.exports = mongoose.model(ANS, ansSchema)

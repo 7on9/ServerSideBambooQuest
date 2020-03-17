@@ -1,10 +1,10 @@
-let CLOUDINARY_CONFIG = require('../common/constant/cloudinary')
-// var dotenv = require('dotenv');
-// dotenv.load;
-
-let cloudinary = require('cloudinary').v2
-
-cloudinary.config(CLOUDINARY_CONFIG)
+const cloudinary = require('cloudinary').v2
+const { CLOUD_NAME: cloud_name, API_KEY: api_key, API_SECRET: api_secret } = process.env
+cloudinary.config({
+  cloud_name,
+  api_key,
+  api_secret,
+})
 
 module.exports = {
   upload: (imageBase64, callback) => {

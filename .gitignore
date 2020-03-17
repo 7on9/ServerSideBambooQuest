@@ -1,10 +1,7 @@
 #node modules
 node_modules/
 
-#cloudinary.js
-common/constant/cloudinary.js
+package-lock.json
+yarn.lock
 
-#database.js
-common/constant/database.js
-
-*.package-lock.json
+.env

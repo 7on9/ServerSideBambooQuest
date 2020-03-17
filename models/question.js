@@ -1,10 +1,11 @@
-let mongoose = require('mongoose')
-let Ans = require('./ans')
+const { QUESTION } = require('../common/constant/database').SCHEMA
+const mongoose = require('mongoose')
+const Ans = require('./ans')
 
-let Schema = mongoose.Schema,
+const Schema = mongoose.Schema,
   ObjectId = Schema.ObjectId
 
-let questionSchema = new mongoose.Schema({
+const questionSchema = new mongoose.Schema({
   _id: Number,
   quiz: String,
   ans: [Ans.schema],
@@ -14,10 +15,10 @@ let questionSchema = new mongoose.Schema({
   duration: Number,
   img_path: String,
   category: [ObjectId],
-  nCorrectAnswer: Number,
-  nIncorrectAnswer: Number,
-  like: Number,
+  n_correct_answer: Number,
+  n_incorrect_answer: Number,
+  like: [ObjectId],
   deleted: Boolean,
 })
 
-module.exports = mongoose.model('question', questionSchema)
+module.exports = mongoose.model(QUESTION, questionSchema)
