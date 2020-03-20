@@ -10,16 +10,19 @@ let mapToken = new Map()
 const { CFS, SECRET } = process.env
 
 module.exports = {
-  computingJWT: (email, callback) => {
-    let payload = {
-      email: email,
-      confess: CFS,
-      key: 'your name',
-      exp: Date.now() + 43200000,
-    }
-    //exp in 12h
-    let secretKey = SECRET
-    jwt.sign(payload, secretKey, { algorithm: 'HS256' }, callback)
+  computingJWT: email => {
+    return new Promise((res, rej) => {
+      let payload = {
+        email,
+        confess: CFS,
+        key: 'your name',
+        exp: Date.now() + 43200000 * 14, //exp in 14 days
+      }
+      let secretKey = SECRET
+      jwt.sign(payload, secretKey, { algorithm: 'HS256' }, (error, token) =>
+        error ? rej(error) : res(token)
+      )
+    })
   },
   getToken: email => {
     return mapToken.get(email)
@@ -36,28 +39,32 @@ module.exports = {
   removeTokenForUser: email => {
     mapToken.delete(email)
   },
-  verifyToken: async (token, callback) => {
+  verifyToken: async token => {
     let decodedToken = await jwt.decode(token, SECRET)
     if (decodedToken) {
       if (decodedToken.exp < Date.now()) {
         mapToken.delete(decodedToken.email)
-        return callback(new Error(ERROR.TOKEN.EXPIRED), null)
+        throw new Error(ERROR.TOKEN.EXPIRED)
       } else {
         let tokenByEmail = await mapToken.get(decodedToken.email)
         if (tokenByEmail && tokenByEmail.indexOf(token) >= 0) {
-          User.findOne({ email: decodedToken.email }, (err, user) => {
-            if (err || !user) {
-              return callback(new Error(ERROR.USER.NOT_EXIST), null)
+          try {
+            let user = await User.findOne({ email: decodedToken.email }).exec()
+            if (user) {
+              return user
             } else {
-              return callback(null, user)
+              throw new Error(ERROR.USER.NOT_EXIST)
             }
-          })
+          } catch (error) {
+            console.log('[Utility][token]', error)
+            throw new Error(ERROR.USER.NOT_EXIST)
+          }
         } else {
-          return callback(new Error(ERROR.TOKEN.INVALID), null)
+          throw new Error(ERROR.TOKEN.INVALID)
         }
       }
     } else {
-      return callback(new Error(ERROR.TOKEN.INVALID), null)
+      throw new Error(ERROR.TOKEN.INVALID)
     }
   },
   createGameCode: idGame => {

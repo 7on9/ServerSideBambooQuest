@@ -5,8 +5,8 @@ app.use(cors({}))
 
 //socket io for game
 let server = require('http').createServer(app)
-let io = require('socket.io').listen(server),
-  socket = require('./socket')(io)
+let io = require('socket.io').listen(server)
+require('./socket')(io)
 
 io.origins()
 

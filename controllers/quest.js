@@ -4,47 +4,76 @@ let Ans = require('../models/ans')
 let Quest = require('../models/quest')
 let Question = require('../models/question')
 let constant = require('../common/constant/event')
-
+const { error400, error403, error401 } = require('../common/constant/error').CODE
 let Utility = require('../common/utility')
 
 let quest = {
-  getQuestsOfUser: (idUser, callback) => {
-    Quest.find({ id_author: idUser }, callback)
+  /**
+   * TODO get quests of user
+   * @param {String} idUser
+   * @returns {Promise<Array>} quests
+   */
+  getQuestsOfUser: async idUser => {
+    try {
+      let quests = await Quest.find({ id_author: idUser }).exec()
+      return quests
+    } catch (error) {
+      console.log(error)
+      return []
+    }
   },
-  getInfo: (idUser, idQuest, callback) => {
-    Quest.findOne({ id_author: idUser, _id: idQuest }, callback)
+  /**
+   * TODO get quests of user
+   * @param {String} idUser
+   * @param {String} idQuest
+   * @returns {Promise<Object>} quest
+   */
+  getInfo: async (idUser, idQuest) => {
+    try {
+      let q = await Quest.findOne({ id_author: idUser, _id: idQuest }).exec()
+      return q
+    } catch (error) {
+      console.log(error)
+      return null
+    }
   },
-  createQuest: (nQuest, user, callback) => {
+  /**
+   * TODO get quests of user
+   * @param {
+    {
+      description: String, 
+      img_path: String, 
+      title: String, 
+      is_public: Boolean}
+    } nQuest
+   * @returns {Promise<Array>} quests
+   */
+  createQuest: async (nQuest, user) => {
     let newQuest = new Quest({
-      id_author: user._id,
-      title: nQuest.title,
+      ...nQuest,
       questions: [],
-      description: nQuest.description,
-      is_public: nQuest.is_public,
-      img_path: nQuest.img_path,
+      id_author: user._id,
       deleted: false,
     })
-    newQuest
-      .save()
-      .then(res => callback(null, res))
-      .catch(err => callback(err, null))
+    try {
+      let res = await newQuest.save()
+      return res
+    } catch (error) {
+      throw error
+    }
   },
-  editQuest: (nQuest, user, callback) => {},
-  addQuestion: (nQuestion, idUser, callback) => {
-    Quest.findById(nQuestion._id, (err, fQuest) => {
-      if (fQuest.id_author.toString() != idUser) {
-        callback(true, null)
-      } else {
+  editQuest: (nQuest, user) => {},
+  addQuestion: async (nQuestion, idUser) => {
+    let q = await Quest.findById(nQuestion._id)
+    if (q.id_author.toString() != idUser) {
+      throw new Error("DON'T HAVE PERMISSION")
+    } else {
+      try {
         let newQuestion = new Question({
-          _id: fQuest.questions.length + 1,
-          quiz: nQuestion.quiz,
+          ...nQuestion,
+          _id: q.questions.length + 1,
           ans: [],
           correct_id: parseInt(nQuestion.correct_id),
-          correct_point: nQuestion.correct_point,
-          incorrect_point: nQuestion.incorrect_point,
-          duration: nQuestion.duration,
-          img_path: nQuestion.img_path,
-          category: nQuestion.category,
           n_correct_answer: 0,
           n_incorrect_answer: 0,
           like: 0,
@@ -57,65 +86,60 @@ let quest = {
           })
           newQuestion.ans.push(newAns)
         }
-        fQuest.questions.push(newQuestion)
-        fQuest
-          .save()
-          .then(res => callback(null, res))
-          .catch(err => callback(err, null))
+        q.questions.push(newQuestion)
+        let res = await q.save()
+        return res
+      } catch (error) {
+        throw error
       }
-    })
+    }
   },
   //start quest/create game
-  startQuest: async (token, idQuest, callback) => {
-    Utility.verifyToken(token, (err, user) => {
-      if (user) {
-        Quest.findById(idQuest, (err, quest) => {
-          if (quest && !quest.is_public && quest.id_author !== user._id) {
-            return callback(new Error("DON'T HAVE PERMISSION"), null)
-          } else {
-            let newGame = new Game({
-              id_quest: quest._id,
-              id_host: user._id,
-              players: [],
-            })
-            newGame
-              .save()
-              .then(game => {
-                user.game_history.push(game._id)
-                user
-                  .save()
-                  .catch(err => console.log(err))
-                  .then(() => callback(null, game._id))
-              })
-              .catch(err => callback(err, null))
-          }
-        })
+  startQuest: async (token, idQuest) => {
+    let user = await Utility.verifyToken(token)
+    if (user) {
+      let q = await Quest.findById(idQuest)
+      if (q && !q.is_public && q.id_author !== user._id) {
+        throw new Error(error403)
       } else {
-        callback(new Error('UNAUTHORIZE'), null)
+        try {
+          let newGame = new Game({
+            id_quest: quest._id,
+            id_host: user._id,
+            players: [],
+          })
+          let game = await newGame.save()
+          user.game_history.push(game._id)
+          await user.save()
+          return game._id
+        } catch (error) {
+          throw error
+        }
       }
-    })
+    } else {
+      throw new Error(error401)
+    }
   },
-  getGameCode: async (idGame, token, callback) => {
-    Utility.verifyToken(token, (err, user) => {
-      if (user._id == idGame) {
-        let code = Utility.getCodeGame(idGame)
-        if (code) return callback(null, code)
-        else return callback(new Error('END_GAME'), null)
-      } else {
-        return callback(new Error("DON'T HAVE PERMISTION"), null)
-      }
-    })
+  getGameCode: async (idGame, token) => {
+    let user = await Utility.verifyToken(token)
+    if (user && user._id == idGame) {
+      let code = Utility.getCodeGame(idGame)
+      if (code) {
+        return code
+      } else throw new Error('END_GAME')
+    } else {
+      throw new Error(error403)
+    }
   },
-  //idGame = idGame
-  joinQuest: async (idGame, username, token, callback) => {
+  joinQuest: async (idGame, username, token) => {
     username = username.toLowerCase()
-    let game = await Game.findOne({ _id: idGame })
+    let game = await Game.findOne({ _id: idGame }).exec()
     if (!game) {
-      return callback(new Error('GAME_NOT_EXIST'), null)
+      throw new Error('GAME_NOT_EXIST')
     }
     let existUsername = game.players.find(answer => answer.username == username)
     if (existUsername) {
-      callback(new Error('DUPLICATE_USERNAME'), null)
+      throw new Error('DUPLICATE_USERNAME')
     } else {
       let newPlayer = new Player({
         username: username,
@@ -123,121 +147,100 @@ let quest = {
         time: 0,
       })
       game.players.push(newPlayer)
-      game
-        .save()
-        .then(async () => {
-          if (game && token) {
-            Utility.verifyToken(token, (err, user) => {
-              if (user) {
-                if (user._id.toString() == game.id_host.toString()) {
-                  return callback(null, true)
-                } else {
-                  user.game_history.push(game._id)
-                  user.save().then(() => callback(null, true))
-                }
-              }
-            })
+      try {
+        let game = await game.save()
+        if (game && token) {
+          let user = await Utility.verifyToken(token)
+          if (user && user._id.toString() == game.id_host.toString()) {
+            return true
           } else {
-            return callback(null, true)
+            user.game_history.push(game._id)
+            await user.save()
+            return true
           }
-        })
-        .catch(err => callback(err, null))
+        }
+      } catch (error) {
+        throw error
+      }
     }
   },
-  removePlayer: async (idGame, username) => {
-    let game = await Game.findOne({ _id: idGame })
+  removePlayer: async (_id, username) => {
+    let game = await Game.findOne({ _id }).exec()
     let posUser = game.players.findIndex(
       player => player.username.toLowerCase() == username.toLowerCase()
     )
     game.players = game.players.splice(posUser, 1)
     game.save()
   },
-  answer: async (idGame, username, idAnswer, time, callback) => {
-    let game = await Game.findOne({ _id: idGame })
+  answer: async (_id, username, idAnswer, time) => {
+    let game = await Game.findOne({ _id }).exec()
     let posUser = game.players.findIndex(
       player => player.username.toLowerCase() == username.toLowerCase()
     )
     game.players[posUser].ans.push(idAnswer)
     game.players[posUser].time += time
-    let id_quest = game.id_quest
-    game
-      .save()
-      .then(() => callback(null, id_quest))
-      .catch(err => callback(err, null))
+    let { id_quest } = game
+    try {
+      await game.save()
+      return id_quest
+    } catch (error) {
+      throw error
+    }
   },
-  getPointOfUserInGame: (idGame, username) => {
-    return new Promise(async (res, rej) => {
-      let game = await Game.findOne({
-        _id: idGame,
-        players: { $elemMatch: { username: username } },
-      })
-      if (game == null) return -1
-      else {
-        let gameOfUser = game.players.find()
-      }
+  getPointOfUserInGame: async (idGame, username) => {
+    let game = await Game.findOne({
+      _id: idGame,
+      players: { $elemMatch: { username } },
     })
+    if (game == null) {
+      return -1
+    } else {
+      let gameOfUser = game.players.find()
+    }
   },
-  getAllQuestionsOfQuest: idQuest => {
-    return new Promise(async (res, rej) => {
-      let query = Quest.findById(idQuest).select('questions')
-      query.exec((err, questions) => {
-        if (!err) res(questions)
-        else rej(err)
-      })
-    })
+  getAllQuestionsOfQuest: async idQuest => {
+    try {
+      let questions = await Quest.findById(idQuest)
+        .select('questions')
+        .exec()
+      return questions
+    } catch (error) {
+      throw error
+    }
   },
   //get info quests
-  getPublicInfoQuest: idQuest => {
-    return new Promise(async (res, rej) => {
-      Quest.findOne({ _id: idQuest, is_public: true, deleted: false }, (err, quest) => {
-        if (err || !quest) {
-          rej(err)
-        } else {
-          let retQuest = {}
-          retQuest.id_author = quest.id_author
-          retQuest._id = quest._id
-          retQuest.title = quest.title
-          retQuest.img_path = quest.img_path
-          retQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
-          retQuest.description = quest.description
-          retQuest.is_public = quest.is_public
-          res(retQuest)
-        }
-      })
-    })
+  getPublicInfoQuest: async _id => {
+    try {
+      let q = await Quest.findOne({ _id, is_public: true, deleted: false }).exec()
+      let retQuest = { ...q }
+      retQuest.questions = Array.from(q.questions).map(v => v.toJSON())
+      return retQuest
+    } catch (error) {
+      throw error
+    }
   },
   //get quest from idGame
   getQuestFromIdGame: async idGame => {
     let game = await Game.findById(idGame)
-    let quest = await Quest.findById(game.id_quest)
-    return quest
+    let q = await Quest.findById(game.id_quest)
+    return q
   },
   //get all quests
-  getPublicQuests: limit => {
-    return new Promise(async (res, rej) => {
-      Quest.find({ is_public: true, deleted: false })
+  getPublicQuests: async limit => {
+    try {
+      let quests = await Quest.find({ is_public: true, deleted: false })
         .limit(limit || 25)
         .skip(limit * 25)
-        .exec((err, quests) => {
-          if (err) {
-            rej(err)
-          } else {
-            let retQuest = []
-            quests.forEach(quest => {
-              let nQuest = {}
-              nQuest._id = quest._id
-              nQuest.title = quest.title
-              nQuest.id_author = quest.id_author
-              nQuest.img_path = quest.img_path
-              nQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
-              nQuest.description = quest.description
-              nQuest.is_public = quest.is_public
-              retQuest.push(nQuest)
-            })
-            res(retQuest)
-          }
-        })
-    })
+        .exec()
+      let retQuest = []
+      quests.forEach(q => {
+        let nQuest = { ...q }
+        nQuest.questions = Array.from(q.questions).map(v => v.toJSON())
+        retQuest.push(nQuest)
+      })
+    } catch (error) {
+      throw error
+    }
   },
 }
 module.exports = quest

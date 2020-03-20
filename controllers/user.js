@@ -1,19 +1,17 @@
 let crypto = require('crypto')
 let User = require('../models/user')
 let Utility = require('../common/utility')
-let ERROR = require('../common/constant/event').ERROR
+const { ERROR } = require('../common/constant/event')
 
-let isExistEmail = email => {
-  return new Promise((resolve, reject) => {
-    User.find({ email: email, deleted: false }, (err, res) => {
-      if (err) {
-        resolve(false)
-      }
-      if (res.length == 0) {
-        resolve(true)
-      } else resolve(false)
-    })
-  })
+const isExistEmail = async email => {
+  try {
+    let user = await User.findOne({ email, deleted: false }).exec()
+    console.log('user', user)
+    return user ? true : false
+  } catch (error) {
+    console.log(error)
+    return false
+  }
 }
 
 let user = {
@@ -24,11 +22,11 @@ let user = {
    * @param {String} name
    * @param {Function} callback
    */
-  register: async (email, password, name, callback) => {
+  register: async (email, password, name) => {
     email = email.toLowerCase()
-    let isEmailUseable = await isExistEmail(email)
-    if (!isEmailUseable) {
-      return callback(new Error(ERROR.DUPLICATE), null)
+    let existEmail = await isExistEmail(email)
+    if (existEmail) {
+      throw new Error(ERROR.DUPLICATE)
     } else {
       password = crypto
         .createHash('sha256')
@@ -42,10 +40,12 @@ let user = {
         game_history: [],
         deleted: false,
       })
-      newUser
-        .save()
-        .then(res => callback(null, res))
-        .catch(err => callback(err, null))
+      try {
+        let res = await newUser.save()
+        return res
+      } catch (error) {
+        throw error
+      }
     }
   },
   /**
@@ -54,80 +54,89 @@ let user = {
    * @param {String} password
    * @param {Function} callback
    */
-  login: async (email, password, callback) => {
+  login: async (email, password) => {
     password = crypto
       .createHash('sha256')
       .update(password)
       .digest('hex')
     email = email.toLowerCase()
-    User.findOne({ email: email, password: password, deleted: false }, (err, res) => {
-      if (res != null) {
-        let token = Utility.getToken(res.email)
-        if (token) {
-          return callback(null, { user: res._doc, token: token[0] })
-        } else {
-          Utility.computingJWT(email, (err, newToken) => {
-            Utility.addNewTokenForUser(email, newToken)
-            return callback(null, { user: res._doc, token: newToken })
-          })
-        }
+    let _user = await User.findOne({ email, password, deleted: false }).exec()
+    if (_user) {
+      let token = Utility.getToken(email)
+      if (token) {
+        return { user: _user, token: token[0] }
       } else {
-        callback(err, null)
+        token = await Utility.computingJWT(email)
+        Utility.addNewTokenForUser(email, token)
+        return { user: _user, token }
       }
-    })
-  },
-  logout: async (token, callback) => {
-    User.findOneAndUpdate({ token: token }, { token: '' }, callback)
-  },
-  getBaseInfo: async (id, callback) => {
-    let user = await User.findOne({
-      _id: id,
-    }).select('name', 'dob', 'gender', 'organization', 'avatar_path')
-    if (user) {
-      return callback(null, user)
     } else {
-      return callback(new Error('NOT_FOUND'), null)
+      throw new Error(ERROR.UNAUTHORIZED)
     }
   },
-  getBaseInfoOfAmoutUsers: async (limit, callback) => {
-    User.find({})
-      .limit(limit || 25)
-      .select('name', 'dob', 'gender', 'organization', 'avatar_path')
-      .exec(callback)
+  logout: async token => {
+    try {
+      let u = await Utility.verifyToken(token)
+      Utility.removeTokenForUser(u.email)
+      return true
+    } catch (error) {
+      throw error
+    }
   },
-  updateInfo: (user, callback) => {
+  getBaseInfo: async _id => {
+    let user = await User.findOne({
+      _id,
+    })
+      .select('name', 'dob', 'gender', 'organization', 'avatar_path')
+      .exec()
+    if (user) {
+      return user
+    } else {
+      throw new Error(ERROR.NOT_EXIST)
+    }
+  },
+  getBaseInfoOfAmoutUsers: async limit => {
+    try {
+      let users = await User.find({})
+        .limit(limit || 25)
+        .select('name', 'dob', 'gender', 'organization', 'avatar_path')
+        .exec()
+      return users
+    } catch (error) {
+      throw error
+    }
+  },
+  updateInfo: async user => {
     user.password = crypto
       .createHash('sha256')
       .update(user.password)
       .digest('hex')
-    User.findById(user._id, (err, oldUser) => {
-      oldUser.name = user.name
+    try {
+      let oldUser = await User.findById(user._id).exec()
       oldUser.dob = user.dob
-      oldUser.password = user.password
-      oldUser.gender = user.gender
-      oldUser.organization = user.organization
+      oldUser.name = user.name
       oldUser.phone = user.phone
+      oldUser.gender = user.gender
+      oldUser.password = user.password
       oldUser.avatar_path = user.avatar_path
+      oldUser.organization = user.organization
       oldUser.last_update = Date.now()
-      oldUser
-        .save()
-        .then(res => callback(null, res))
-        .catch(err => callback(err, null))
-    })
+      let res = await oldUser.save()
+      return res
+    } catch (error) {
+      throw error
+    }
   },
-  deleteAccount: (token, callback) => {
-    User.findOne({ token: token }, (err, doc) => {
-      if (doc) {
-        doc.token = ''
-        doc.deleted = true
-        doc
-          .save()
-          .then(res => callback(null, res))
-          .catch(err => callback(err, null))
-      } else {
-        callback(true, null)
-      }
-    })
+  deleteAccount: async token => {
+    try {
+      let user = await Utility.verifyToken(token)
+      let res = await User.find({ _id: user._id }, { $set: { deleted: true } }).exec()
+      console.log(res)
+      return res ? true : false
+    } catch (error) {
+      console.log(error)
+      return false
+    }
   },
 }
 

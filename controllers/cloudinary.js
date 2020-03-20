@@ -7,14 +7,13 @@ cloudinary.config({
 })
 
 module.exports = {
-  upload: (imageBase64, callback) => {
-    cloudinary.uploader.upload(imageBase64, (err, image) => {
-      if (err) {
-        console.log(err)
-        return callback(err, null)
-      } else {
-        return callback(null, image.url)
-      }
-    })
+  upload: async imageBase64 => {
+    try {
+      let image = cloudinary.uploader.upload(imageBase64)
+      return image.url
+    } catch (error) {
+      console.log(error)
+      throw error
+    }
   },
 }

@@ -1,49 +1,41 @@
 let router = require('express').Router()
 let user = require('../controllers/user')
 let Utility = require('../common/utility')
+let { error401 } = require('../common/constant/error').CODE
 
 router
   //verify data before call this api
-  .post('/register', (req, res) => {
-    if (!req.body.email || !req.body.password) {
+  .post('/register', async (req, res) => {
+    let { email, password, name } = req.body
+    if (!email || !password) {
       res.status(400).send({
         result: false,
       })
     } else {
-      user.register(req.body.email, req.body.password, req.body.name, (error, result) => {
-        if (error) {
-          res.status(400).send({
-            result: false,
-            detail: error,
-          })
-        } else {
-          res.status(201).send({
-            result: true,
-          })
-        }
-      })
+      try {
+        await user.register(email, password, name)
+        res.status(201).send({ result: true })
+      } catch (error) {
+        res.status(400).send(error)
+      }
     }
   })
-  .post('/login', (req, res) => {
-    user.login(req.body.email, req.body.password, (error, result) => {
-      if (error || !result) {
-        res.status(401).send({
-          result: false,
-        })
-      } else {
-        // user.updateToken(req.body.email, req.body.password, result);
-        delete result.user.password
-        res.status(200).send({
-          result: true,
-          token: result.token,
-          info: result.user,
-        })
-      }
-    })
+  .post('/login', async (req, res) => {
+    try {
+      let result = await user.login(req.body.email, req.body.password)
+      delete result.user.password
+      res.status(200).send({
+        result: true,
+        token: result.token,
+        info: result.user,
+      })
+    } catch (error) {
+      console.log(error)
+      res.status(401).send(error401)
+    }
   })
   .post('/logout', (req, res) => {
     user.logout(req.headers.token, (error, result) => {
-      // console.log(error +  " "+result);
       if (error || !result) {
         res.status(404).send({
           result: false,
@@ -102,7 +94,7 @@ router
         } else {
           res.status(200).json({
             result: true,
-            detail: 'Updated',
+            detail: 'UPDATED',
           })
         }
       })
