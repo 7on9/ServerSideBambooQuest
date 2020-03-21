@@ -1,7 +1,7 @@
 const Category = require('../models/category')
 let Utility = require('../common/utility')
 
-const category = {
+const CategoryController = {
   /**
    * TODO: Create collection
    * @param {String} description
@@ -54,4 +54,4 @@ const category = {
   },
 }
 
-module.exports = category
+module.exports = CategoryController

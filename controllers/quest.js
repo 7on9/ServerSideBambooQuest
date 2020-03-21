@@ -3,11 +3,10 @@ let Player = require('../models/player')
 let Ans = require('../models/ans')
 let Quest = require('../models/quest')
 let Question = require('../models/question')
-let constant = require('../common/constant/event')
 const { error400, error403, error401 } = require('../common/constant/error').CODE
 let Utility = require('../common/utility')
 
-let quest = {
+let QuestController = {
   /**
    * TODO get quests of user
    * @param {String} idUser
@@ -30,8 +29,8 @@ let quest = {
    */
   getInfo: async (idUser, idQuest) => {
     try {
-      let q = await Quest.findOne({ id_author: idUser, _id: idQuest }).exec()
-      return q
+      let quest = await Quest.findOne({ id_author: idUser, _id: idQuest }).exec()
+      return quest
     } catch (error) {
       console.log(error)
       return null
@@ -64,14 +63,14 @@ let quest = {
   },
   editQuest: (nQuest, user) => {},
   addQuestion: async (nQuestion, idUser) => {
-    let q = await Quest.findById(nQuestion._id)
-    if (q.id_author.toString() != idUser) {
+    let quest = await Quest.findById(nQuestion._id)
+    if (quest.id_author.toString() != idUser) {
       throw new Error("DON'T HAVE PERMISSION")
     } else {
       try {
         let newQuestion = new Question({
           ...nQuestion,
-          _id: q.questions.length + 1,
+          _id: quest.questions.length + 1,
           ans: [],
           correct_id: parseInt(nQuestion.correct_id),
           n_correct_answer: 0,
@@ -86,8 +85,8 @@ let quest = {
           })
           newQuestion.ans.push(newAns)
         }
-        q.questions.push(newQuestion)
-        let res = await q.save()
+        quest.questions.push(newQuestion)
+        let res = await quest.save()
         return res
       } catch (error) {
         throw error
@@ -98,8 +97,8 @@ let quest = {
   startQuest: async (token, idQuest) => {
     let user = await Utility.verifyToken(token)
     if (user) {
-      let q = await Quest.findById(idQuest)
-      if (q && !q.is_public && q.id_author !== user._id) {
+      let quest = await Quest.findById(idQuest)
+      if (quest && !quest.is_public && quest.id_author !== user._id) {
         throw new Error(error403)
       } else {
         try {
@@ -211,9 +210,9 @@ let quest = {
   //get info quests
   getPublicInfoQuest: async _id => {
     try {
-      let q = await Quest.findOne({ _id, is_public: true, deleted: false }).exec()
-      let retQuest = { ...q }
-      retQuest.questions = Array.from(q.questions).map(v => v.toJSON())
+      let quest = await Quest.findOne({ _id, is_public: true, deleted: false }).exec()
+      let retQuest = { ...quest }
+      retQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
       return retQuest
     } catch (error) {
       throw error
@@ -222,25 +221,26 @@ let quest = {
   //get quest from idGame
   getQuestFromIdGame: async idGame => {
     let game = await Game.findById(idGame)
-    let q = await Quest.findById(game.id_quest)
-    return q
+    let quest = await Quest.findById(game.id_quest)
+    return quest
   },
   //get all quests
   getPublicQuests: async limit => {
     try {
       let quests = await Quest.find({ is_public: true, deleted: false })
         .limit(limit || 25)
-        .skip(limit * 25)
+        .skip((limit || 0) * 25)
         .exec()
       let retQuest = []
-      quests.forEach(q => {
-        let nQuest = { ...q }
-        nQuest.questions = Array.from(q.questions).map(v => v.toJSON())
+      quests.forEach(quest => {
+        let nQuest = { ...quest._doc }
+        nQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
         retQuest.push(nQuest)
       })
+      return retQuest
     } catch (error) {
       throw error
     }
   },
 }
-module.exports = quest
+module.exports = QuestController

@@ -1,5 +1,14 @@
 let router = require('express').Router()
-let quest = require('../controllers/quest')
+let {
+  addQuestion,
+  createQuest,
+  getAllQuestionsOfQuest,
+  getInfo,
+  getPublicInfoQuest,
+  getPublicQuests,
+  getQuestsOfUser,
+  startQuest,
+} = require('../controllers/quest')
 let Utility = require('../common/utility')
 let { error400, error404, error401 } = require('../common/constant/error').CODE
 let Cloudinary = require('../controllers/cloudinary')
@@ -10,38 +19,41 @@ router
     try {
       let user = await Utility.verifyToken(req.headers.token)
       if (user) {
-        let myQuests = await quest.getQuestsOfUser(user._id)
-        res.status(200).json({ myQuests })
+        let myQuests = await getQuestsOfUser(user._id)
+        res.status(200).json(myQuests)
+      } else {
+        res.status(400).json(error401)
       }
     } catch (error) {
-      res.status(401).send(error401)
+      res.status(400).json({ ...error400, errorMessage: error })
     }
   })
   // Get all quests of account
-  .get('/quest/:id', async (req, res) => {
-    let { _id } = req.headers
-    if (!_id) {
-      res.status(404).send({
+  .get('/:id', async (req, res) => {
+    let { id } = req.params
+    if (!id) {
+      res.status(404).json({
         ...error404,
-        statusMessage: 'Missing parameter _id',
+        statusMessage: 'Missing parameter id',
       })
     }
     try {
       let user = await Utility.verifyToken(req.headers.token)
       if (user) {
-        let q = await quest.getInfo(user._id, req.params.id)
-        res.status(200).json({ quest: q })
+        let quest = await getInfo(user._id, req.params.id)
+        res.status(200).json(quest)
       } else {
         res.status(401).json(error401)
       }
     } catch (error) {
+      console.log(error)
       res.status(400).json(error)
     }
   })
   // Get all questions of quest with id
   .get('/:id/questions', async (req, res) => {
     try {
-      let questions = await quest.getAllQuestionsOfQuest(req.params.id)
+      let questions = await getAllQuestionsOfQuest(req.params.id)
       res.status(200).json(questions)
     } catch (error) {
       res.status(400).json(error)
@@ -49,8 +61,8 @@ router
   })
   .get('/:id', async (req, res) => {
     try {
-      let infoQuest = await quest.getPublicInfoQuest(req.params.id)
-      res.status(200).json({ quest: infoQuest })
+      let quest = await getPublicInfoQuest(req.params.id)
+      res.status(200).json(quest)
     } catch (error) {
       res.status(400).json(error)
     }
@@ -59,13 +71,10 @@ router
   .get('/', async (req, res) => {
     try {
       let { limit } = req.params
-      let quests = await quest.getPublicQuests(limit)
-      res.status(200).json({
-        result: true,
-        quests,
-      })
+      let quests = await getPublicQuests(limit)
+      res.status(200).json(quests)
     } catch (error) {
-      res.status(400).send({
+      res.status(400).json({
         ...error400,
         statusMessage: error,
       })
@@ -77,18 +86,17 @@ router
       let newQuest = JSON.parse(req.body.newQuest)
       let user = await Utility.verifyToken(req.headers.token)
       if (!user) {
-        res.status(401).send(error401)
+        res.status(401).json(error401)
       }
       if (newQuest.title && newQuest.description && newQuest.is_public != null) {
-        let url = await Cloudinary.upload(newQuest.img_path)
-        newQuest.img_path = url
-        let result = await quest.createQuest(newQuest, user)
-        res.status(400).send(result)
+        newQuest.img_path = await Cloudinary.upload(newQuest.img_path)
+        let result = await createQuest(newQuest, user)
+        res.status(200).json(result)
       } else {
-        res.status(400).send(error400)
+        res.status(400).json(error400)
       }
     } catch (error) {
-      res.status(400).send(error400)
+      res.status(400).json(error400)
     }
   })
   //add question
@@ -106,11 +114,11 @@ router
     // let newQuestion = JSON.parse(req.body.newQuestion)
     let user = await Utility.verifyToken(req.headers.token)
     if (!user) {
-      res.status(401).send(error401)
+      res.status(401)
     }
     if (_id && quiz && ans && correct_id && correct_point && incorrect_point && duration) {
       img_path = await Cloudinary.upload(img_path)
-      let result = await quest.addQuestion(
+      let result = await addQuestion(
         {
           _id,
           quiz,
@@ -123,22 +131,22 @@ router
         },
         user._id
       )
-      res.status(200).send(result)
+      res.status(200).json(result)
     } else {
-      res.status(400).send(error400)
+      res.status(400).json(error400)
     }
   })
   //add question
-  .post('/like', async (req, res) => { 
+  .post('/like', async (req, res) => {
     //add later
   })
   //start game
   .post('/start', async (req, res) => {
     if (req.body.idQuest) {
       try {
-        let idGame = await quest.startQuest(req.headers.token, req.body.idQuest)
+        let idGame = await startQuest(req.headers.token, req.body.idQuest)
         let code = Utility.createGameCode(idGame)
-        res.status(200).send({
+        res.status(200).json({
           code: code.toString(),
           idGame,
         })

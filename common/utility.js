@@ -39,6 +39,11 @@ module.exports = {
   removeTokenForUser: email => {
     mapToken.delete(email)
   },
+  /**
+   * TODO: Get user from token
+   * @param {string} token
+   * @returns {Promise<User>} user
+   */
   verifyToken: async token => {
     let decodedToken = await jwt.decode(token, SECRET)
     if (decodedToken) {
@@ -51,6 +56,7 @@ module.exports = {
           try {
             let user = await User.findOne({ email: decodedToken.email }).exec()
             if (user) {
+              user.password = null
               return user
             } else {
               throw new Error(ERROR.USER.NOT_EXIST)

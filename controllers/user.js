@@ -1,12 +1,12 @@
 let crypto = require('crypto')
 let User = require('../models/user')
 let Utility = require('../common/utility')
+let Cloudinary = require('./cloudinary')
 const { ERROR } = require('../common/constant/event')
 
 const isExistEmail = async email => {
   try {
     let user = await User.findOne({ email, deleted: false }).exec()
-    console.log('user', user)
     return user ? true : false
   } catch (error) {
     console.log(error)
@@ -14,7 +14,7 @@ const isExistEmail = async email => {
   }
 }
 
-let user = {
+const UserController = {
   /**
    * TODO: Register account
    * @param {String} email
@@ -33,15 +33,16 @@ let user = {
         .update(password)
         .digest('hex')
       let newUser = new User({
-        email: email,
-        name: name,
-        password: password,
+        email,
+        name,
+        password,
         last_update: Date.now(),
         game_history: [],
         deleted: false,
       })
       try {
         let res = await newUser.save()
+        res.password = null
         return res
       } catch (error) {
         throw error
@@ -68,6 +69,7 @@ let user = {
       } else {
         token = await Utility.computingJWT(email)
         Utility.addNewTokenForUser(email, token)
+        _user.password = null
         return { user: _user, token }
       }
     } else {
@@ -76,17 +78,15 @@ let user = {
   },
   logout: async token => {
     try {
-      let u = await Utility.verifyToken(token)
-      Utility.removeTokenForUser(u.email)
+      let user = await Utility.verifyToken(token)
+      Utility.removeTokenForUser(user.email)
       return true
     } catch (error) {
       throw error
     }
   },
   getBaseInfo: async _id => {
-    let user = await User.findOne({
-      _id,
-    })
+    let user = await User.findOne({ _id })
       .select('name', 'dob', 'gender', 'organization', 'avatar_path')
       .exec()
     if (user) {
@@ -106,7 +106,8 @@ let user = {
       throw error
     }
   },
-  updateInfo: async user => {
+  update: async user => {
+    user.avatar_path = await Cloudinary.upload(user.avatar_path)
     user.password = crypto
       .createHash('sha256')
       .update(user.password)
@@ -140,4 +141,4 @@ let user = {
   },
 }
 
-module.exports = user
+module.exports = UserController
