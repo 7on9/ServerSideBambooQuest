@@ -1,7 +1,9 @@
 let crypto = require('crypto')
 let User = require('../models/user')
+let Role = require('../models/role')
 let Utility = require('../common/utility')
 let Cloudinary = require('./cloudinary')
+let RoleController = require('../controllers/role')
 const { ERROR } = require('../common/constant/event')
 
 const isExistEmail = async email => {
@@ -20,10 +22,11 @@ const UserController = {
    * @param {String} email
    * @param {String} password
    * @param {String} name
-   * @param {Function} callback
+   * @param {String} role
    */
-  register: async (email, password, name) => {
+  register: async (email, password, name, role) => {
     email = email.toLowerCase()
+    role = await Role.find(role ? { _id: role } : { name: 'user' }).select('_id')
     let existEmail = await isExistEmail(email)
     if (existEmail) {
       throw new Error(ERROR.DUPLICATE)
@@ -38,6 +41,7 @@ const UserController = {
         password,
         last_update: Date.now(),
         game_history: [],
+        role,
         deleted: false,
       })
       try {
@@ -67,7 +71,7 @@ const UserController = {
       if (token) {
         return { user: _user, token: token[0] }
       } else {
-        token = await Utility.computingJWT(email)
+        token = await Utility.computingJWT(email, _user.role)
         Utility.addNewTokenForUser(email, token)
         _user.password = null
         return { user: _user, token }
@@ -87,7 +91,7 @@ const UserController = {
   },
   getBaseInfo: async _id => {
     let user = await User.findOne({ _id })
-      .select('name', 'dob', 'gender', 'organization', 'avatar_path')
+      .select('_id', 'email', 'name', 'dob', 'gender', 'avatar_path')
       .exec()
     if (user) {
       return user
@@ -95,11 +99,12 @@ const UserController = {
       throw new Error(ERROR.NOT_EXIST)
     }
   },
-  getBaseInfoOfAmoutUsers: async limit => {
+  getBaseInfoOfAmoutUsers: async (limit, page) => {
     try {
       let users = await User.find({})
         .limit(limit || 25)
-        .select('name', 'dob', 'gender', 'organization', 'avatar_path')
+        .skip((page || 0) * 25)
+        .select('_id', 'email', 'name', 'dob', 'gender', 'avatar_path')
         .exec()
       return users
     } catch (error) {
@@ -121,6 +126,18 @@ const UserController = {
       oldUser.password = user.password
       oldUser.avatar_path = user.avatar_path
       oldUser.organization = user.organization
+      oldUser.last_update = Date.now()
+      let res = await oldUser.save()
+      return res
+    } catch (error) {
+      throw error
+    }
+  },
+  setRole: async (role, idUser, roleId) => {
+    RoleController.canExecAction(role, 'user', 'setRole', roleId)
+    try {
+      let oldUser = await User.findById(idUser).exec()
+      oldUser.role = roleId
       oldUser.last_update = Date.now()
       let res = await oldUser.save()
       return res

@@ -6,7 +6,7 @@ let { error401, error400 } = require('../common/constant/error').CODE
 router
   //verify data before call this api
   .post('/register', async (req, res) => {
-    let { email, password, name } = req.body
+    let { email, password, name, role } = req.body
     if (!email || !password) {
       res.status(400).json({
         ...error400,
@@ -14,7 +14,7 @@ router
       })
     } else {
       try {
-        await register(email, password, name)
+        await register(email, password, name, role)
         res.status(201).json({ result: true })
       } catch (error) {
         res.status(400).json(error)

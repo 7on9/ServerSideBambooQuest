@@ -7,15 +7,13 @@ const CategoryController = {
    * @param {String} description
    * @param {String} img_path
    * @param {String} name
-   * @param {String} tag
-   * @param {Function} callback
    */
-  create: async (name, description, img_path, tag) => {
+  create: async ({ name, description, img_path }) => {
     let newCategory = new Category({
       name,
       description,
       img_path,
-      tag,
+      tag: [],
       deleted: false,
     })
     try {
@@ -31,21 +29,32 @@ const CategoryController = {
    * @param {Function} callback
    */
   get: async filter => {
-    let categories = await Category.find(filter || {}).exec()
+    filter = filter ? { ...filter, delete: false } : { delete: false }
+    let categories = await Category.find(filter).exec()
     return categories
   },
   /**
    * TODO: Update category
-   * @param {Category} newCategory
+   * @param {Category} category
    */
-  updateInfo: async newCategory => {
-    let category = await Category.findById(newCategory._id).exec()
-    category._id = newCategory._id
-    category.description = newCategory.description
-    category.img_path = newCategory.img_path
-    category.name = newCategory.name
-    category.tag = newCategory.tag
+  update: async category => {
+    let _category = await Category.findById(category._id).exec()
+    _category = { ..._category, ...category }
     try {
+      let res = await _category.save()
+      return res
+    } catch (error) {
+      throw error
+    }
+  },
+  /**
+   * TODO: Update category
+   * @param {string} _id categoryId
+   */
+  delete: async _id => {
+    try {
+      let category = await Category.findById(_id).exec()
+      category.deleted = true
       let res = await category.save()
       return res
     } catch (error) {

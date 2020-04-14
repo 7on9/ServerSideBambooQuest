@@ -6,6 +6,7 @@ const categorySchema = new mongoose.Schema(
     name: String,
     description: String,
     img_path: String,
+    deleted: Boolean,
     tag: [String],
   },
   { collection: CATEGORY }

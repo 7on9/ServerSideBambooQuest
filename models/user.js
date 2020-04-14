@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
     avatar_path: String,
     last_update: Number,
     game_history: [ObjectId],
+    role: ObjectId,
     deleted: Boolean,
   },
   { collection: USER }

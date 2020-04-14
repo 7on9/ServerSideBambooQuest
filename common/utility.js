@@ -10,10 +10,11 @@ let mapToken = new Map()
 const { CFS, SECRET } = process.env
 
 module.exports = {
-  computingJWT: email => {
+  computingJWT: (email, role) => {
     return new Promise((res, rej) => {
       let payload = {
         email,
+        role,
         confess: CFS,
         key: 'your name',
         exp: Date.now() + 43200000 * 14, //exp in 14 days

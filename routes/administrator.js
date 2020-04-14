@@ -1,20 +1,16 @@
 let router = require('express').Router()
 let {
-  addQuestion,
-  createQuest,
-  getAllQuestionsOfQuest,
-  getInfo,
-  getPublicInfoQuest,
-  getPublicQuests,
-  getQuestsOfUser,
-  startQuest,
-} = require('../controllers/quest')
+  get,
+  delete,
+  updateInfo,
+  create,
+} = require('../controllers/category')
 let Utility = require('../common/utility')
 let { error400, error404, error401 } = require('../common/constant/error').CODE
 let Cloudinary = require('../controllers/cloudinary')
-let administrator = require('../controllers/role')
+
 router
-  //Get all quests of account
+  //getInfo - owner
   .get('/my-quests', async (req, res) => {
     try {
       let user = await Utility.verifyToken(req.headers.token)
@@ -70,8 +66,8 @@ router
   // get all quest
   .get('/', async (req, res) => {
     try {
-      let { limit, page } = req.query
-      let quests = await getPublicQuests(limit, page)
+      let { limit } = req.params
+      let quests = await getPublicQuests(limit)
       res.status(200).json(quests)
     } catch (error) {
       res.status(400).json({
@@ -159,10 +155,6 @@ router
     } else {
       res.status(400).json(error400)
     }
-  })
-  .get('/x/x', async (req, res) => {
-    console.log('xx')
-    res.send(administrator.getAllMethod())
   })
 //get result
 module.exports = router
