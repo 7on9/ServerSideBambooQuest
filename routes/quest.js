@@ -70,8 +70,8 @@ router
   // get all quest
   .get('/', async (req, res) => {
     try {
-      let { limit, page } = req.query
-      let quests = await getPublicQuests(limit, page)
+      let { limit, skip } = req.query
+      let quests = await getPublicQuests(limit, skip)
       res.status(200).json(quests)
     } catch (error) {
       res.status(400).json({

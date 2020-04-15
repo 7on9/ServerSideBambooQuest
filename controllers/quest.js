@@ -225,13 +225,13 @@ let QuestController = {
     return quest
   },
   //get all quests
-  getPublicQuests: async (limit, page) => {
+  getPublicQuests: async (limit, skip) => {
     limit = Number.parseInt(limit)
-    page = Number.parseInt(page)
+    skip = Number.parseInt(skip)
     try {
       let quests = await Quest.find({ is_public: true, deleted: false })
         .limit(limit || 25)
-        .skip((page || 0) * 25)
+        .skip((skip || 0) * 25)
         .exec()
       let retQuest = []
       quests.forEach(quest => {

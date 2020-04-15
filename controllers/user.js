@@ -39,6 +39,8 @@ const UserController = {
         email,
         name,
         password,
+        avatar_path: '',
+        phone: '',
         last_update: Date.now(),
         game_history: [],
         role,
@@ -99,11 +101,11 @@ const UserController = {
       throw new Error(ERROR.NOT_EXIST)
     }
   },
-  getBaseInfoOfAmoutUsers: async (limit, page) => {
+  getBaseInfoOfAmoutUsers: async (limit, skip) => {
     try {
       let users = await User.find({})
         .limit(limit || 25)
-        .skip((page || 0) * 25)
+        .skip((skip || 0) * 25)
         .select('_id', 'email', 'name', 'dob', 'gender', 'avatar_path')
         .exec()
       return users
