@@ -1,16 +1,16 @@
-const Category = require('../models/category')
-const User = require('../models/category')
-const Role = require('../models/category')
 let Utility = require('../common/utility')
 
 const AdministratorController = {
   /**
-   * TODO: Get categories
-   * @param {any} filter
-   * @param {Function} callback
+   * @param {"category" | "user" | "quest"} collection
    */
-  getDashboard: () => {
-  }
+  analytic: collection => {
+    let Col = require(`../models/${collection}`)
+    return {
+      count: async () => await Col.countDocuments(),
+      find: async filter => await Col.find(filter),
+    }
+  },
 }
 
 module.exports = AdministratorController

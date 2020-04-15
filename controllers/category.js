@@ -3,7 +3,7 @@ let Utility = require('../common/utility')
 
 const CategoryController = {
   /**
-   * TODO: Create collection
+   * TODO: Create category
    * @param {String} description
    * @param {String} img_path
    * @param {String} name

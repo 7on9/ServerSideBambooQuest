@@ -1,5 +1,5 @@
 let router = require('express').Router()
-let { get, update, create, addQuestion } = require('../controllers/category')
+let { get, update, create } = require('../controllers/category')
 let Utility = require('../common/utility')
 let { canExecAction } = require('../controllers/role')
 let { error400, error404, error401, error403 } = require('../common/constant/error').CODE
