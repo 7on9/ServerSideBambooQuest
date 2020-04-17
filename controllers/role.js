@@ -2,18 +2,6 @@ const Role = require('../models/role')
 const controllers = require('../controllers')
 
 const roleController = {
-  permissionDefine: {
-    COLLECION_FILTER: {
-      quest: {
-        is_public: false,
-        deleted: false,
-      },
-      user: {
-        deleted: false,
-      },
-    },
-    USER_PUBLIC_INFO: ['_id', 'email', 'avatar_path', 'name', 'dob', 'gender'],
-  },
   create: async ({ name, roles, actions }) => {
     let role = new Role({
       name,

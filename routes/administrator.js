@@ -17,12 +17,10 @@ router
       //   res.status(403).json(error403)
       //   return
       // }
-      let { filter, limit, skip } = req.query
+      let { filter } = req.query
       let { collection, method } = req.params
-      collection = collection.toLowerCase()
-      method = method.toLowerCase()
       let func = analytic(collection)
-      let result = await func[method]({ filter, limit, skip })
+      let result = await func[method](filter)
       res.status(200).json(result)
     } catch (error) {
       res.status(400).json({ ...error400, errorMessage: error })
