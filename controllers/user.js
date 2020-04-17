@@ -101,33 +101,38 @@ const UserController = {
       throw new Error(ERROR.NOT_EXIST)
     }
   },
-  getBaseInfoOfAmoutUsers: async (limit, skip) => {
-    try {
-      let users = await User.find({})
-        .limit(limit || 25)
-        .skip((skip || 0) * 25)
-        .select('_id', 'email', 'name', 'dob', 'gender', 'avatar_path')
-        .exec()
-      return users
-    } catch (error) {
-      throw error
-    }
-  },
   update: async user => {
-    user.avatar_path = await Cloudinary.upload(user.avatar_path)
-    user.password = crypto
-      .createHash('sha256')
-      .update(user.password)
-      .digest('hex')
+    user.avatar_path = user.avatar_path ? await Cloudinary.upload(user.avatar_path) : null
     try {
       let oldUser = await User.findById(user._id).exec()
       oldUser.dob = user.dob
       oldUser.name = user.name
       oldUser.phone = user.phone
       oldUser.gender = user.gender
-      oldUser.password = user.password
-      oldUser.avatar_path = user.avatar_path
+      oldUser.avatar_path = user.avatar_path ? user.avatar_path : oldUser.avatar_path
       oldUser.organization = user.organization
+      oldUser.last_update = Date.now()
+      let res = await oldUser.save()
+      return res
+    } catch (error) {
+      throw error
+    }
+  },
+  updatePass: async (_id, oldPassword, password) => {
+    try {
+      oldPassword = crypto
+        .createHash('sha256')
+        .update(oldPassword)
+        .digest('hex')
+      let oldUser = await User.findById(_id).exec()
+      if (oldPassword != oldUser.password) {
+        throw new Error("Old password doesn't match")
+      }
+      password = crypto
+        .createHash('sha256')
+        .update(password)
+        .digest('hex')
+      oldUser.password = password
       oldUser.last_update = Date.now()
       let res = await oldUser.save()
       return res

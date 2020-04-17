@@ -18,6 +18,7 @@ router
       //   return
       // }
       let { filter, limit, skip } = req.query
+      filter = filter ? JSON.parse(filter) : null
       let { collection, method } = req.params
       collection = collection.toLowerCase()
       method = method.toLowerCase()
