@@ -231,7 +231,7 @@ let QuestController = {
     try {
       let quests = await Quest.find({ is_public: true, deleted: false })
         .limit(limit || 25)
-        .skip((skip || 0) * 25)
+        .skip(skip)
         .exec()
       let retQuest = []
       quests.forEach(quest => {

@@ -156,7 +156,6 @@ const UserController = {
     try {
       let user = await Utility.verifyToken(token)
       let res = await User.find({ _id: user._id }, { $set: { deleted: true } }).exec()
-      console.log(res)
       return res ? true : false
     } catch (error) {
       console.log(error)

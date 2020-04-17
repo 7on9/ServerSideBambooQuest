@@ -160,9 +160,4 @@ router
       res.status(400).json(error400)
     }
   })
-  .get('/x/x', async (req, res) => {
-    console.log('xx')
-    res.send(administrator.getAllMethod())
-  })
-//get result
 module.exports = router

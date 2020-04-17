@@ -9,8 +9,8 @@ const AdministratorController = {
     let Col = require(`../models/${collection}`)
     return {
       count: async ({ filter }) => ({ count: await Col.where(filter || {}).countDocuments() }),
-      find: async ({ filter, limit, skip }) =>
-        await Col.find(
+      find: async ({ filter, limit, skip }) => {
+        return await Col.find(
           filter && COLLECION_FILTER[collection]
             ? { ...filter, ...COLLECION_FILTER[collection] }
             : filter || COLLECION_FILTER[collection]
@@ -18,7 +18,8 @@ const AdministratorController = {
           .limit(Math.min(Number(limit), 100))
           .skip(Number(skip) || 0)
           .select(collection == 'user' ? USER_PUBLIC_INFO : null)
-          .exec(),
+          .exec()
+      },
       findOne: async ({ filter }) =>
         await Col.findOne(
           filter && COLLECION_FILTER[collection]

@@ -21,7 +21,6 @@ router
       filter = filter ? JSON.parse(filter) : null
       let { collection, method } = req.params
       collection = collection.toLowerCase()
-      method = method.toLowerCase()
       let func = analytic(collection)
       let result = await func[method]({ filter, limit, skip })
       res.status(200).json(result)
