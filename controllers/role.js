@@ -5,7 +5,7 @@ const roleController = {
   permissionDefine: {
     COLLECION_FILTER: {
       quest: {
-        is_public: false,
+        is_public: true,
         deleted: false,
       },
       user: {
@@ -13,6 +13,31 @@ const roleController = {
       },
     },
     USER_PUBLIC_INFO: ['_id', 'email', 'avatar_path', 'name', 'dob', 'gender'],
+    QUEST_PUBLIC_INFO: [
+      'id_author',
+      'title',
+      'questions',
+      'category',
+      'img_path',
+      'is_public',
+      'like',
+    ],
+    PLAYER_PUBLIC_INFO: ['username', 'ans', 'time'],
+    ROLE_PUBLIC_INFO: ['name', 'roles', 'methods'],
+    QUESTION_PUBLIC_INFO: [
+      '_id',
+      'quiz',
+      'ans',
+      'correct_id',
+      'correct_point',
+      'incorrect_point',
+      'duration',
+      'img_path',
+      'category',
+      'n_correct_answer',
+      'n_incorrect_answer',
+      'like',
+    ],
   },
   create: async ({ name, roles, methods }) => {
     let role = new Role({

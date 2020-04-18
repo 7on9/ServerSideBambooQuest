@@ -5,7 +5,6 @@ let Cloudinary = require('../controllers/cloudinary')
 let { analytic } = require('../controllers/administrator')
 let { canExecAction, create: createRole } = require('../controllers/role')
 
-
 const thisController = 'administrator'
 
 router
@@ -26,6 +25,7 @@ router
       let result = await func[method]({ filter, limit, skip })
       res.status(200).json(result)
     } catch (error) {
+      console.log(error)
       res.status(400).json({ ...error400, errorMessage: error })
     }
   })

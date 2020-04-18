@@ -1,6 +1,7 @@
 let Utility = require('../common/utility')
-let { USER_PUBLIC_INFO, COLLECION_FILTER } = require('../controllers/role').permissionDefine
+let { COLLECION_FILTER } = require('../controllers/role').permissionDefine
 let Role = require('./role')
+
 const AdministratorController = {
   /**
    * @param {"category" | "user" | "quest" | "game"} collection
@@ -17,7 +18,7 @@ const AdministratorController = {
         )
           .limit(Math.min(Number(limit), 100))
           .skip(Number(skip) || 0)
-          .select(collection == 'user' ? USER_PUBLIC_INFO : null)
+          .select(getPublicFields(collection))
           .exec()
       },
       findOne: async ({ filter }) =>
@@ -26,10 +27,13 @@ const AdministratorController = {
             ? { ...filter, ...COLLECION_FILTER[collection] }
             : filter || COLLECION_FILTER[collection]
         )
-          .select(collection == 'user' ? USER_PUBLIC_INFO : null)
+          .select(getPublicFields(collection))
           .exec(),
     }
   },
 }
 
+const getPublicFields = collection => {
+  return require('../controllers/role').permissionDefine[`${collection.toUpperCase()}_PUBLIC_INFO`]
+}
 module.exports = AdministratorController
