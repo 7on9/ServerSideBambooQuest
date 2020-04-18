@@ -1,6 +1,6 @@
 let Utility = require('../common/utility')
 let { USER_PUBLIC_INFO, COLLECION_FILTER } = require('../controllers/role').permissionDefine
-
+let Role = require('./role')
 const AdministratorController = {
   /**
    * @param {"category" | "user" | "quest" | "game"} collection

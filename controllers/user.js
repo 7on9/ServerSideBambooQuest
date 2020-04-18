@@ -26,7 +26,7 @@ const UserController = {
    */
   register: async (email, password, name, role) => {
     email = email.toLowerCase()
-    role = await Role.find(role ? { _id: role } : { name: 'user' }).select('_id')
+    role = await Role.findOne(role ? { _id: role } : { name: 'user' }).select('_id')
     let existEmail = await isExistEmail(email)
     if (existEmail) {
       throw new Error(ERROR.DUPLICATE)

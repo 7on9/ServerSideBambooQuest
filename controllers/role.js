@@ -14,13 +14,17 @@ const roleController = {
     },
     USER_PUBLIC_INFO: ['_id', 'email', 'avatar_path', 'name', 'dob', 'gender'],
   },
-  create: async ({ name, roles, actions }) => {
+  create: async ({ name, roles, methods }) => {
     let role = new Role({
       name,
       roles,
-      actions,
+      methods,
     })
     try {
+      let _role = await Role.findOne({ name }).exec()
+      if (_role) {
+        throw new Error('Role name is already exist')
+      }
       let doc = await role.save()
       doc.roles = [...doc.roles, doc._id]
       doc = await doc.save()
@@ -30,7 +34,7 @@ const roleController = {
       }
     } catch (error) {
       console.log(error)
-      throw error
+      throw new Error(error)
     }
   },
   /**
