@@ -101,10 +101,10 @@ const UserController = {
       throw new Error(ERROR.NOT_EXIST)
     }
   },
-  update: async user => {
+  update: async (user, _id) => {
     user.avatar_path = user.avatar_path ? await Cloudinary.upload(user.avatar_path) : null
     try {
-      let oldUser = await User.findById(user._id).exec()
+      let oldUser = await User.findById(_id).exec()
       oldUser.dob = user.dob
       oldUser.name = user.name
       oldUser.phone = user.phone
