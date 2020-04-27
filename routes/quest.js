@@ -83,7 +83,7 @@ router
   //create quest
   .post('/', async (req, res) => {
     try {
-      let newQuest = JSON.parse(req.body.newQuest)
+      let newQuest = req.body.newQuest
       let user = await Utility.verifyToken(req.headers.token)
       if (!user) {
         res.status(401).json(error401)
