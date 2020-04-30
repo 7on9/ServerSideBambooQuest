@@ -12,7 +12,7 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/warnings',
   ],
-  //   parser: 'babel-eslint',
+  parser: 'babel-eslint',
   parserOptions: {
     ecmaVersion: 2017,
     sourceType: 'module',

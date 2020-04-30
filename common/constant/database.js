@@ -10,6 +10,7 @@ module.exports = {
     QUESTION: 'question',
     PLAYER: 'player',
     ANS: 'ans',
+    ROLE: 'role',
     SCHEDULE_GAME_TICKET: 'schedule_game_ticket',
   },
 }

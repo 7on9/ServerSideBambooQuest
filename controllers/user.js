@@ -1,51 +1,58 @@
 let crypto = require('crypto')
 let User = require('../models/user')
+let Role = require('../models/role')
 let Utility = require('../common/utility')
-let ERROR = require('../common/constant/event').ERROR
+let Cloudinary = require('./cloudinary')
+let RoleController = require('../controllers/role')
+const { ERROR } = require('../common/constant/event')
 
-let isExistEmail = email => {
-  return new Promise((resolve, reject) => {
-    User.find({ email: email, deleted: false }, (err, res) => {
-      if (err) {
-        resolve(false)
-      }
-      if (res.length == 0) {
-        resolve(true)
-      } else resolve(false)
-    })
-  })
+const isExistEmail = async email => {
+  try {
+    let user = await User.findOne({ email, deleted: false }).exec()
+    return user ? true : false
+  } catch (error) {
+    console.log(error)
+    return false
+  }
 }
 
-let user = {
+const UserController = {
   /**
    * TODO: Register account
    * @param {String} email
    * @param {String} password
    * @param {String} name
-   * @param {Function} callback
+   * @param {String} role
    */
-  register: async (email, password, name, callback) => {
+  register: async (email, password, name, role) => {
     email = email.toLowerCase()
-    let isEmailUseable = await isExistEmail(email)
-    if (!isEmailUseable) {
-      return callback(new Error(ERROR.DUPLICATE), null)
+    role = await Role.findOne(role ? { _id: role } : { name: 'user' }).select('_id')
+    let existEmail = await isExistEmail(email)
+    if (existEmail) {
+      throw new Error(ERROR.DUPLICATE)
     } else {
       password = crypto
         .createHash('sha256')
         .update(password)
         .digest('hex')
       let newUser = new User({
-        email: email,
-        name: name,
-        password: password,
+        email,
+        name,
+        password,
+        avatar_path: '',
+        phone: '',
         last_update: Date.now(),
         game_history: [],
+        role,
         deleted: false,
       })
-      newUser
-        .save()
-        .then(res => callback(null, res))
-        .catch(err => callback(err, null))
+      try {
+        let res = await newUser.save()
+        res.password = null
+        return res
+      } catch (error) {
+        throw error
+      }
     }
   },
   /**
@@ -54,81 +61,107 @@ let user = {
    * @param {String} password
    * @param {Function} callback
    */
-  login: async (email, password, callback) => {
+  login: async (email, password) => {
     password = crypto
       .createHash('sha256')
       .update(password)
       .digest('hex')
     email = email.toLowerCase()
-    User.findOne({ email: email, password: password, deleted: false }, (err, res) => {
-      if (res != null) {
-        let token = Utility.getToken(res.email)
-        if (token) {
-          return callback(null, { user: res._doc, token: token[0] })
-        } else {
-          Utility.computingJWT(email, (err, newToken) => {
-            Utility.addNewTokenForUser(email, newToken)
-            return callback(null, { user: res._doc, token: newToken })
-          })
-        }
+    let _user = await User.findOne({ email, password, deleted: false }).exec()
+    if (_user) {
+      let token = Utility.getToken(email)
+      if (token) {
+        return { user: _user, token: token[0] }
       } else {
-        callback(err, null)
+        token = await Utility.computingJWT(email, _user.role)
+        Utility.addNewTokenForUser(email, token)
+        _user.password = null
+        return { user: _user, token }
       }
-    })
-  },
-  logout: async (token, callback) => {
-    User.findOneAndUpdate({ token: token }, { token: '' }, callback)
-  },
-  getBaseInfo: async (id, callback) => {
-    let user = await User.findOne({
-      _id: id,
-    }).select('name', 'dob', 'gender', 'organization', 'avatar_path')
-    if (user) {
-      return callback(null, user)
     } else {
-      return callback(new Error('NOT_FOUND'), null)
+      throw new Error(ERROR.UNAUTHORIZED)
     }
   },
-  getBaseInfoOfAmoutUsers: async (limit, callback) => {
-    User.find({})
-      .limit(limit || 25)
-      .select('name', 'dob', 'gender', 'organization', 'avatar_path')
-      .exec(callback)
+  logout: async token => {
+    try {
+      let user = await Utility.verifyToken(token)
+      Utility.removeTokenForUser(user.email)
+      return true
+    } catch (error) {
+      throw error
+    }
   },
-  updateInfo: (user, callback) => {
-    user.password = crypto
-      .createHash('sha256')
-      .update(user.password)
-      .digest('hex')
-    User.findById(user._id, (err, oldUser) => {
-      oldUser.name = user.name
+  getBaseInfo: async _id => {
+    let user = await User.findOne({ _id })
+      .select('_id', 'email', 'name', 'dob', 'gender', 'avatar_path')
+      .exec()
+    if (user) {
+      return user
+    } else {
+      throw new Error(ERROR.NOT_EXIST)
+    }
+  },
+  update: async (user, _id) => {
+    user.avatar_path = user.avatar_path ? await Cloudinary.upload(user.avatar_path) : null
+    try {
+      let oldUser = await User.findById(_id).exec()
       oldUser.dob = user.dob
-      oldUser.password = user.password
-      oldUser.gender = user.gender
-      oldUser.organization = user.organization
+      oldUser.name = user.name
       oldUser.phone = user.phone
-      oldUser.avatar_path = user.avatar_path
+      oldUser.gender = user.gender
+      oldUser.avatar_path = user.avatar_path ? user.avatar_path : oldUser.avatar_path
+      oldUser.organization = user.organization
       oldUser.last_update = Date.now()
-      oldUser
-        .save()
-        .then(res => callback(null, res))
-        .catch(err => callback(err, null))
-    })
+      let res = await oldUser.save()
+      return res
+    } catch (error) {
+      throw error
+    }
   },
-  deleteAccount: (token, callback) => {
-    User.findOne({ token: token }, (err, doc) => {
-      if (doc) {
-        doc.token = ''
-        doc.deleted = true
-        doc
-          .save()
-          .then(res => callback(null, res))
-          .catch(err => callback(err, null))
-      } else {
-        callback(true, null)
+  updatePass: async (_id, oldPassword, password) => {
+    try {
+      oldPassword = crypto
+        .createHash('sha256')
+        .update(oldPassword)
+        .digest('hex')
+      let oldUser = await User.findById(_id).exec()
+      if (oldPassword != oldUser.password) {
+        throw new Error("Old password doesn't match")
       }
-    })
+      password = crypto
+        .createHash('sha256')
+        .update(password)
+        .digest('hex')
+      oldUser.password = password
+      oldUser.last_update = Date.now()
+      let res = await oldUser.save()
+      return res
+    } catch (error) {
+      throw error
+    }
+  },
+  setRole: async (role, idUser, roleId) => {
+    RoleController.canExecAction(role, 'user', 'setRole', roleId)
+    try {
+      let oldUser = await User.findById(idUser).exec()
+      oldUser.role = roleId
+      oldUser.last_update = Date.now()
+      let res = await oldUser.save()
+      return res
+    } catch (error) {
+      throw error
+    }
+  },
+  deleteAccount: async token => {
+    try {
+      let user = await Utility.verifyToken(token)
+      let res = await User.find({ _id: user._id }, { $set: { deleted: true } }).exec()
+      return res ? true : false
+    } catch (error) {
+      console.log(error)
+      return false
+    }
   },
 }
 
-module.exports = user
+module.exports = UserController

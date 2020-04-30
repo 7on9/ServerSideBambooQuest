@@ -7,14 +7,18 @@ cloudinary.config({
 })
 
 module.exports = {
-  upload: (imageBase64, callback) => {
-    cloudinary.uploader.upload(imageBase64, (err, image) => {
-      if (err) {
-        console.log(err)
-        return callback(err, null)
-      } else {
-        return callback(null, image.url)
-      }
-    })
+  /**
+   * TODO: Upload imgage and return url path
+   * @returns {Promise<string>} url path
+   */
+  upload: async imageBase64 => {
+    try {
+      let image = await cloudinary.uploader.upload(imageBase64)
+      console.log(`==================[uploaded image to server]============== [${image.url}]`)
+      return image.url
+    } catch (error) {
+      console.log(error)
+      throw error
+    }
   },
 }

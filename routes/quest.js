@@ -1,269 +1,164 @@
 let router = require('express').Router()
-let quest = require('../controllers/quest')
+let {
+  addQuestion,
+  createQuest,
+  getAllQuestionsOfQuest,
+  getInfo,
+  getPublicInfoQuest,
+  getPublicQuests,
+  getQuestsOfUser,
+  startQuest,
+} = require('../controllers/quest')
 let Utility = require('../common/utility')
+let { error400, error404, error401 } = require('../common/constant/error').CODE
 let Cloudinary = require('../controllers/cloudinary')
-
+let administrator = require('../controllers/role')
 router
-  //getInfo - owner
-  .get('/myQuests', async (req, res) => {
-    Utility.verifyToken(req.headers.token, (err, user) => {
+  //Get all quests of account
+  .get('/my-quests', async (req, res) => {
+    try {
+      let user = await Utility.verifyToken(req.headers.token)
       if (user) {
-        quest.getQuestsOfUser(user._id, (error, myQuests) => {
-          if (error) {
-            res.status(404)
-          } else {
-            res.status(200).send({ myQuests })
-          }
-        })
+        let myQuests = await getQuestsOfUser(user._id)
+        res.status(200).json(myQuests)
+      } else {
+        res.status(400).json(error401)
       }
-    })
+    } catch (error) {
+      res.status(400).json({ ...error400, errorMessage: error })
+    }
   })
   // Get all quests of account
-  .get('/my/:id', async (req, res) => {
-    Utility.verifyToken(req.headers.token, (err, user) => {
+  .get('/user/:id', async (req, res) => {
+    let { id } = req.params
+    if (!id) {
+      res.status(404).json({
+        ...error404,
+        statusMessage: 'Missing parameter id',
+      })
+    }
+    try {
+      let user = await Utility.verifyToken(req.headers.token)
       if (user) {
-        if (req.headers._id) {
-          quest.getInfo(user._id, req.params.id, (err, result) => {
-            if (err) {
-              res.status(404).json({
-                result: false,
-                detail: 'QUERY_ERROR',
-              })
-            } else {
-              res.status(200).json({
-                result: true,
-                detail: result,
-              })
-            }
-          })
-        } else {
-          res.status(404).json({
-            result: false,
-            detail: 'QUERY_ERROR',
-          })
-        }
+        let quest = await getInfo(user._id, req.params.id)
+        res.status(200).json(quest)
       } else {
-        res.status(401).send({
-          result: false,
-          detail: 'UNAUTHORIZED',
-        })
+        res.status(401).json(error401)
       }
-    })
+    } catch (error) {
+      console.log(error)
+      res.status(400).json(error)
+    }
   })
-  .get('/question/:id', async (req, res) => {
-    let questions = await quest.getAllQuestionsOfQuest(req.params.id)
-    res.status(200).json(questions)
+  // Get all questions of quest with id
+  .get('/:id/questions', async (req, res) => {
+    try {
+      let questions = await getAllQuestionsOfQuest(req.params.id)
+      res.status(200).json(questions)
+    } catch (error) {
+      res.status(400).json(error)
+    }
   })
   .get('/:id', async (req, res) => {
-    let infoQuest = await quest.getPublicInfoQuest(req.params.id)
-    res.status(200).send({
-      result: true,
-      info: infoQuest,
-    })
+    try {
+      let quest = await getPublicInfoQuest(req.params.id)
+      console.log(quest)
+      res.status(200).json(quest)
+    } catch (error) {
+      res.status(400).json(error)
+    }
   })
-  //get all public quests
+  // get all quest
   .get('/', async (req, res) => {
-    let { params } = req
-    let quests = await quest.getPublicQuests(params.limit)
-    res.status(200).json({
-      result: true,
-      quests,
-    })
+    try {
+      let { limit, skip } = req.query
+      let quests = await getPublicQuests(limit, skip)
+      res.status(200).json(quests)
+    } catch (error) {
+      res.status(400).json({
+        ...error400,
+        statusMessage: error,
+      })
+    }
   })
   //create quest
   .post('/', async (req, res) => {
-    let newQuest = JSON.parse(req.body.newQuest)
-    Utility.verifyToken(req.headers.token, (err, user) => {
-      if (user) {
-        if (newQuest.title && newQuest.description && newQuest.is_public != null) {
-          Cloudinary.upload(newQuest.img_path, (err, url) => {
-            newQuest.img_path = url
-            quest.createQuest(newQuest, user, (err, result) => {
-              if (err) {
-                res.status(404).json({
-                  result: false,
-                  detail: 'QUERY_ERROR',
-                })
-              } else {
-                res.status(200).json({
-                  result: true,
-                  detail: result,
-                })
-              }
-            })
-          })
-        } else {
-          res.status(404).json({
-            result: false,
-            detail: 'QUERY_ERROR',
-          })
-        }
-      } else {
-        res.status(401).send({
-          result: false,
-          detail: 'UNAUTHORIZED',
-        })
+    try {
+      let newQuest = req.body.newQuest
+      let user = await Utility.verifyToken(req.headers.token)
+      if (!user) {
+        res.status(401).json(error401)
       }
-    })
+      if (newQuest.title && newQuest.description && newQuest.is_public != null) {
+        newQuest.img_path = await Cloudinary.upload(newQuest.img_path)
+        let result = await createQuest(newQuest, user)
+        res.status(200).json(result)
+      } else {
+        res.status(400).json(error400)
+      }
+    } catch (error) {
+      res.status(400).json(error400)
+    }
   })
   //add question
   .post('/question', async (req, res) => {
-    let newQuestion = JSON.parse(req.body.newQuestion)
-    Utility.verifyToken(req.headers.token, (err, user) => {
-      if (user) {
-        if (
-          newQuestion._id &&
-          newQuestion.quiz &&
-          newQuestion.ans &&
-          newQuestion.correct_id &&
-          newQuestion.correct_point &&
-          newQuestion.incorrect_point &&
-          newQuestion.duration
-        ) {
-          Cloudinary.upload(newQuestion.img_path, (err, url) => {
-            newQuestion.img_path = url
-            quest.addQuestion(newQuestion, user._id, (err, result) => {
-              if (err) {
-                res.status(404).json({
-                  result: false,
-                  detail: 'QUERY_ERROR',
-                })
-              } else {
-                res.status(200).json({
-                  result: true,
-                  detail: result.questions,
-                })
-              }
-            })
-          })
-        } else {
-          res.status(404).json({
-            result: false,
-            detail: 'QUERY_ERROR',
-          })
-        }
-      } else {
-        res.status(401).send({
-          result: false,
-          detail: 'UNAUTHORIZED',
-        })
-      }
-    })
+    let {
+      _id,
+      quiz,
+      ans,
+      correct_id,
+      correct_point,
+      incorrect_point,
+      duration,
+      img_path,
+    } = req.body.newQuestion
+    // let newQuestion = JSON.parse(req.body.newQuestion)
+    let user = await Utility.verifyToken(req.headers.token)
+    if (!user) {
+      res.status(401)
+    }
+    if (_id && quiz && ans && correct_id && correct_point && incorrect_point && duration) {
+      img_path = await Cloudinary.upload(img_path)
+      let result = await addQuestion(
+        {
+          _id,
+          quiz,
+          ans,
+          correct_id,
+          correct_point,
+          incorrect_point,
+          duration,
+          img_path,
+        },
+        user._id
+      )
+      res.status(200).json(result)
+    } else {
+      res.status(400).json(error400)
+    }
   })
   //add question
   .post('/like', async (req, res) => {
-    let newQuestion = JSON.parse(req.body.newQuestion)
-    Utility.verifyToken(req.headers.token, (err, user) => {
-      if (user) {
-        if (
-          newQuestion._id &&
-          newQuestion.quiz &&
-          newQuestion.ans &&
-          newQuestion.correct_id &&
-          newQuestion.correct_point &&
-          newQuestion.incorrect_point &&
-          newQuestion.duration
-        ) {
-          Cloudinary.upload(newQuestion.img_path, (err, url) => {
-            newQuestion.img_path = url
-            quest.addQuestion(newQuestion, user._id, (err, result) => {
-              if (err) {
-                res.status(404).json({
-                  result: false,
-                  detail: 'QUERY_ERROR',
-                })
-              } else {
-                res.status(200).json({
-                  result: true,
-                  detail: result.questions,
-                })
-              }
-            })
-          })
-        } else {
-          res.status(404).json({
-            result: false,
-            detail: 'QUERY_ERROR',
-          })
-        }
-      } else {
-        res.status(401).send({
-          result: false,
-          detail: 'UNAUTHORIZED',
-        })
-      }
-    })
+    //add later
   })
   //start game
   .post('/start', async (req, res) => {
     if (req.body.idQuest) {
-      quest.startQuest(req.headers.token, req.body.idQuest, (err, result) => {
-        if (err) {
-          res.status(404).json({
-            result: false,
-            detail: 'QUERY_ERROR',
-          })
-        } else {
-          let code = Utility.createGameCode(result)
-          res.status(200).send({
-            result: true,
-            code: code.toString(),
-            idGame: result,
-          })
-        }
-      })
-    } else {
-      res.status(404).json({
-        result: false,
-        detail: 'QUERY_ERROR',
-      })
-    }
-  })
-  //join game
-  /* FOR TESTING ONLY */
-  .post('/join', (req, res) => {
-    if (req.body.idGame && req.body.username) {
-      quest.joinQuest(req.body.idGame, req.body.username, req.headers.token, (err, result) => {
-        if (err) {
-          res.status(404).json({
-            result: false,
-            detail: err,
-          })
-        } else {
-          res.status(200).json({
-            result: true,
-            detail: result,
-          })
-        }
-      })
-    } else {
-      res.status(404).json({
-        result: false,
-        detail: 'QUERY_ERROR',
-      })
-    }
-  })
-  //answer
-  .post('/answer', (req, res) => {
-    quest.answer(
-      req.body.idGame,
-      req.body.username,
-      req.body.idAnswer,
-      req.body.time,
-      (err, result) => {
-        if (err) {
-          res.status(404).json({
-            result: false,
-            detail: err,
-          })
-        } else {
-          res.status(200).json({
-            result: true,
-            detail: result,
-          })
-        }
+      try {
+        let idGame = await startQuest(req.headers.token, req.body.idQuest)
+        let code = Utility.createGameCode(idGame)
+        res.status(200).json({
+          code: code.toString(),
+          idGame,
+        })
+      } catch (error) {
+        res.status(400).json({
+          ...error400,
+          statusMessage: error,
+        })
       }
-    )
+    } else {
+      res.status(400).json(error400)
+    }
   })
-//get result
 module.exports = router
