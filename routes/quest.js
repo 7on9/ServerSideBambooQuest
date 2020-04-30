@@ -29,7 +29,7 @@ router
     }
   })
   // Get all quests of account
-  .get('/:id', async (req, res) => {
+  .get('/user/:id', async (req, res) => {
     let { id } = req.params
     if (!id) {
       res.status(404).json({
@@ -62,6 +62,7 @@ router
   .get('/:id', async (req, res) => {
     try {
       let quest = await getPublicInfoQuest(req.params.id)
+      console.log(quest)
       res.status(200).json(quest)
     } catch (error) {
       res.status(400).json(error)
