@@ -62,8 +62,7 @@ router
   .get('/:id', async (req, res) => {
     try {
       let quest = await getPublicInfoQuest(req.params.id)
-      console.log(quest)
-      res.status(200).json(quest)
+      res.status(200).json(quest._doc)
     } catch (error) {
       res.status(400).json(error)
     }
