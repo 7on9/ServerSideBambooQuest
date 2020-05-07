@@ -25,7 +25,7 @@ exports = module.exports = io => {
       })
 
       //player join game
-      socket.on(GAME.JOIN, (gameCode, username, token) => {
+      socket.on(GAME.JOIN, async (gameCode, username, token) => {
         let idGame = Utility.getIdGame(gameCode)
         if (idGame == null) {
           console.log(`Join - ${idGame} - not found`)
@@ -35,25 +35,23 @@ exports = module.exports = io => {
           if (username in scoreBoard) {
             socket.emit(GAME.JOIN, false, ERROR.DUPLICATE)
           } else {
-            Quest.joinQuest(idGame, username, token, (err, res) => {
-              if (err) {
-                console.log(err)
-                socket.emit(GAME.JOIN, false, err)
-              } else {
-                scoreBoard.push({
-                  username,
-                  score: 0,
-                  time: 0,
-                })
-                socket.emit(GAME.JOIN, true, username, idGame)
-                gamesScoreBoards.set(idGame.toString(), scoreBoard)
-                io.to(idGame).emit(GAME.NEW_PLAYER, {
-                  player: { username, score: 0, time: 0 },
-                })
-                console.log(`Game join - ${gameCode} - player: ${scoreBoard.length}`)
-                socket.join(idGame)
-              }
-            })
+            try {
+              await Quest.joinQuest(idGame, username, token)
+              scoreBoard.push({
+                username,
+                score: 0,
+                time: 0,
+              })
+              socket.emit(GAME.JOIN, true, username, idGame)
+              gamesScoreBoards.set(idGame.toString(), scoreBoard)
+              io.to(idGame).emit(GAME.NEW_PLAYER, {
+                player: { username, score: 0, time: 0 },
+              })
+              console.log(`Game join - ${gameCode} - player: ${scoreBoard.length}`)
+              socket.join(idGame)
+            } catch (error) {
+              socket.emit(GAME.JOIN, false, error)
+            }
           }
         }
       })
@@ -87,29 +85,25 @@ exports = module.exports = io => {
         if (answer.time === GAME.TIMEOUT) {
           answer.time = question.duration
         }
-        Quest.answer(idGame, answer.username, answer.idAnswer, answer.time, (err, idQuest) => {
-          if (err) {
-            console.log(err)
-            socket.emit(GAME.ANSWER, false, gamesScoreBoards.get(idGame.toString()))
-          } else {
-            // let question = gamesQuestions.get(idQuest.toString())[idQuestion];
-            let score =
-              question.correct_id == answer.idAnswer
-                ? question.correct_point
-                : question.incorrect_point
-            scoreBoard = gamesScoreBoards.get(idGame.toString())
-            let i = scoreBoard.findIndex(player => {
-              return player.username.toLowerCase() == answer.username.toLowerCase()
-            })
-
-            scoreBoard[i]['score'] += score
-            scoreBoard[i]['time'] += answer.time
-
-            gamesScoreBoards.set(idGame.toString(), scoreBoard)
-            socket.emit(GAME.CORRECT_ANSWER, question.correct_id == answer.idAnswer)
-            socket.to(idGame).emit(GAME.ANSWER, scoreBoard)
-          }
-        })
+        try {
+          await Quest.answer(idGame, answer.username, answer.idAnswer, answer.time)
+          let score =
+            question.correct_id == answer.idAnswer
+              ? question.correct_point
+              : question.incorrect_point
+          scoreBoard = gamesScoreBoards.get(idGame.toString())
+          let i = scoreBoard.findIndex(player => {
+            return player.username.toLowerCase() == answer.username.toLowerCase()
+          })
+          scoreBoard[i]['score'] += score
+          scoreBoard[i]['time'] += answer.time
+          gamesScoreBoards.set(idGame.toString(), scoreBoard)
+          socket.emit(GAME.CORRECT_ANSWER, question.correct_id == answer.idAnswer)
+          socket.to(idGame).emit(GAME.ANSWER, scoreBoard)
+        } catch (error) {
+          console.log(error)
+          socket.emit(GAME.ANSWER, false, gamesScoreBoards.get(idGame.toString()))
+        }
         //emit to room game except sender
         // io.in(idGame).emit(GAME.SCOREBOARD, scoreBoard);
       })

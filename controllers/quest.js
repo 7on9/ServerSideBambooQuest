@@ -211,7 +211,7 @@ let QuestController = {
   getPublicInfoQuest: async _id => {
     try {
       let quest = await Quest.findOne({ _id, is_public: true, deleted: false }).exec()
-      let retQuest = { ...quest }
+      let retQuest = { ...quest._doc }
       retQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
       return retQuest
     } catch (error) {
