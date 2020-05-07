@@ -46,6 +46,7 @@ router
   .post('/verify', async (req, res) => {
     try {
       let user = await Utility.verifyToken(req.headers.token)
+      user.password = null
       res.status(201).json({
         token: req.headers.token,
         info: user,

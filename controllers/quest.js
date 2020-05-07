@@ -147,8 +147,8 @@ let QuestController = {
       })
       game.players.push(newPlayer)
       try {
-        let game = await game.save()
-        if (game && token) {
+        await game.save()
+        if (token) {
           let user = await Utility.verifyToken(token)
           if (user && user._id.toString() == game.id_host.toString()) {
             return true
@@ -159,6 +159,7 @@ let QuestController = {
           }
         }
       } catch (error) {
+        console.log(error)
         throw error
       }
     }

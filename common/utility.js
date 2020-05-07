@@ -57,7 +57,6 @@ module.exports = {
           try {
             let user = await User.findOne({ email: decodedToken.email }).exec()
             if (user) {
-              user.password = null
               return user
             } else {
               throw new Error(ERROR.USER.NOT_EXIST)

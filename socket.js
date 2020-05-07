@@ -50,6 +50,7 @@ exports = module.exports = io => {
               console.log(`Game join - ${gameCode} - player: ${scoreBoard.length}`)
               socket.join(idGame)
             } catch (error) {
+              console.log(error)
               socket.emit(GAME.JOIN, false, error)
             }
           }
