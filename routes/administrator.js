@@ -3,7 +3,7 @@ let Utility = require('../common/utility')
 let { error400, error404, error403 } = require('../common/constant/error').CODE
 let Cloudinary = require('../controllers/cloudinary')
 let { analytic } = require('../controllers/administrator')
-let { canExecAction, create: createRole } = require('../controllers/role')
+let { canExecAction, set, create: createRole } = require('../controllers/role')
 
 const thisController = 'administrator'
 
@@ -32,6 +32,14 @@ router
   .post('/create-role', async (req, res) => {
     try {
       let result = await createRole(req.body)
+      res.status(200).json(result)
+    } catch (error) {
+      res.status(400).json({ ...error400, errorMessage: error })
+    }
+  })
+  .post('/set-role', async (req, res) => {
+    try {
+      let result = await set(req.body)
       res.status(200).json(result)
     } catch (error) {
       res.status(400).json({ ...error400, errorMessage: error })

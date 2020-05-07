@@ -67,8 +67,8 @@ router
     let user = await Utility.verifyToken(req.headers.token)
     if (user) {
       try {
-        const response = await update(req.body.user, user._id)
-        res.status(200).json(response)
+        let _user = await update(user._id, req.body.user)
+        res.status(200).json(_user)
       } catch (error) {
         res.status(400).json(error)
       }

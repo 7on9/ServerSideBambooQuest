@@ -12,7 +12,16 @@ const roleController = {
         deleted: false,
       },
     },
-    USER_PUBLIC_INFO: ['_id', 'email', 'avatar_path', 'name', 'dob', 'gender', 'last_update', 'game_history'],
+    USER_PUBLIC_INFO: [
+      '_id',
+      'email',
+      'avatar_path',
+      'name',
+      'dob',
+      'gender',
+      'last_update',
+      'game_history',
+    ],
     QUEST_PUBLIC_INFO: [
       'id_author',
       'title',
