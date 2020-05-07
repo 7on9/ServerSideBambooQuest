@@ -62,7 +62,7 @@ router
   .get('/:id', async (req, res) => {
     try {
       let quest = await getPublicInfoQuest(req.params.id)
-      res.status(200).json(quest._doc)
+      res.status(200).json(quest._doc || quest)
     } catch (error) {
       res.status(400).json(error)
     }
@@ -72,7 +72,7 @@ router
     try {
       let { limit, skip } = req.query
       let quests = await getPublicQuests(limit, skip)
-      res.status(200).json(quests)
+      res.status(200).json(quests._doc || quests)
     } catch (error) {
       res.status(400).json({
         ...error400,
