@@ -105,7 +105,7 @@ const UserController = {
     user.avatar_path = user.avatar_path ? await Cloudinary.upload(user.avatar_path) : null
     try {
       let oldUser = await User.findById(_id).exec()
-      oldUser.dob = user.dob
+      oldUser.dob = user.dob ? user.dob : oldUser.dob
       oldUser.name = user.name
       oldUser.phone = user.phone
       oldUser.gender = user.gender
