@@ -1,5 +1,5 @@
 let router = require('express').Router()
-let { register, login, logout, update, updatePass, deleteAccount } = require('../controllers/user')
+let { register, login, logout, update, deleteAccount } = require('../controllers/user')
 let Utility = require('../common/utility')
 let { error401, error400 } = require('../common/constant/error').CODE
 
@@ -70,20 +70,6 @@ router
       try {
         let _user = await update(user._id, req.body.user)
         res.status(200).json(_user)
-      } catch (error) {
-        res.status(400).json(error)
-      }
-    } else {
-      res.status(401).json(error401)
-    }
-  })
-  //update
-  .post('/update-password', async (req, res) => {
-    let user = await Utility.verifyToken(req.headers.token)
-    if (user) {
-      try {
-        let result = await updatePass(user._id, req.body.oldPassword, req.body.password)
-        res.status(200).json(result)
       } catch (error) {
         res.status(400).json(error)
       }
