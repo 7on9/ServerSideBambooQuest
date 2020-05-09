@@ -61,11 +61,23 @@ let QuestController = {
       throw error
     }
   },
-  editQuest: (nQuest, user) => {},
+  editQuest: async (nQuest, user) => {
+    try {
+      let quest = await Quest.findById(nQuest._id)
+      if (user._id != quest.id_author) {
+        throw error403
+      }
+      quest = quest._doc ? { ...quest._doc, ...nQuest } : { ...quest, ...nQuest }
+      await quest.save()
+      return quest
+    } catch (error) {
+      throw error
+    }
+  },
   addQuestion: async (nQuestion, idUser) => {
     let quest = await Quest.findById(nQuestion._id)
     if (quest.id_author.toString() != idUser) {
-      throw new Error("DON'T HAVE PERMISSION")
+      throw error403
     } else {
       try {
         let newQuestion = new Question({
@@ -226,13 +238,13 @@ let QuestController = {
     return quest
   },
   //get all quests
-  getPublicQuests: async (limit, skip) => {
+  getPublicQuests: async (limit, skip, filter) => {
     limit = Number.parseInt(limit)
     skip = Number.parseInt(skip)
     try {
-      let quests = await Quest.find({ is_public: true, deleted: false })
-        .limit(limit || 25)
-        .skip(skip)
+      let quests = await Quest.find({ ...filter, is_public: true, deleted: false })
+        .limit(Math.min(limit || 25, 100))
+        .skip(skip || 0)
         .exec()
       let retQuest = []
       quests.forEach(quest => {
