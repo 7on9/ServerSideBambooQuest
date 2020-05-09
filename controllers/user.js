@@ -102,37 +102,25 @@ const UserController = {
     }
   },
   update: async (_id, user) => {
-    user.avatar_path = user.avatar_path ? await Cloudinary.upload(user.avatar_path) : null
     try {
-      let oldUser = await User.findById(_id).exec()
-      oldUser.dob = user.dob
-      oldUser.name = user.name
-      oldUser.phone = user.phone
-      oldUser.gender = user.gender
-      oldUser.avatar_path = user.avatar_path ? user.avatar_path : oldUser.avatar_path
-      oldUser.organization = user.organization
-      oldUser.last_update = Date.now()
-      let res = await oldUser.save()
-      return res
-    } catch (error) {
-      throw error
-    }
-  },
-  updatePass: async (_id, oldPassword, password) => {
-    try {
-      oldPassword = crypto
-        .createHash('sha256')
-        .update(oldPassword)
-        .digest('hex')
-      let oldUser = await User.findById(_id).exec()
-      if (oldPassword != oldUser.password) {
-        throw new Error("Old password doesn't match")
+      if (user.avatar_path) {
+        user.avatar_path = await Cloudinary.upload(user.avatar_path)
       }
-      password = crypto
-        .createHash('sha256')
-        .update(password)
-        .digest('hex')
-      oldUser.password = password
+      let oldUser = await User.findById(_id).exec()
+      if (user.password && user.oldPassword) {
+        user.oldPassword = crypto
+          .createHash('sha256')
+          .update(user.oldPassword)
+          .digest('hex')
+        if (user.oldPassword != oldUser.password) {
+          throw new Error("Old password doesn't match")
+        }
+        user.password = crypto
+          .createHash('sha256')
+          .update(user.password)
+          .digest('hex')
+      }
+      oldUser = oldUser._doc ? { ...oldUser._doc, ...user } : { ...oldUser._doc, ...user }
       oldUser.last_update = Date.now()
       let res = await oldUser.save()
       return res
