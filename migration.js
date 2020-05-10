@@ -1,6 +1,7 @@
 const migrate = async () => {
+  require('./server')
   //mongoDb
-  require('./common/connection')
+  // require('./common/connection')
   //requiring path and fs modules
   const path = require('path')
   const fs = require('fs')
@@ -13,10 +14,11 @@ const migrate = async () => {
     // Do whatever you want to do with the file
     try {
       console.log('=========running migration: ', file)
-      let migration = require(file)
+      let migration = require(`./migration/${file.replace('.js', '')}`)
       await migration()
     } catch (error) {
       console.log('=========run migration fail: ', file)
+      console.log('=========error: ', error)
       process.exit(0)
     }
   })

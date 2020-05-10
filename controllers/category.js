@@ -39,7 +39,11 @@ const CategoryController = {
    */
   update: async category => {
     let _category = await Category.findById(category._id).exec()
-    _category = { ..._category, ...category }
+    if (category._doc) {
+      _category._doc = { ..._category._doc, ...category }
+    } else {
+      _category = { ..._category, ...category }
+    }
     try {
       let res = await _category.save()
       return res

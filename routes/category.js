@@ -42,8 +42,10 @@ router
         res.status(403).json(error403)
         return
       }
-      if (category._id && category.img_path) {
-        category.img_path = await Cloudinary.upload(category.img_path)
+      if (category._id) {
+        if (category.img_path) {
+          category.img_path = await Cloudinary.upload(category.img_path)
+        }
         let result = await update(category)
         res.status(200).json(result)
       } else {

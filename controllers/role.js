@@ -63,9 +63,7 @@ const roleController = {
       doc.roles = [...doc.roles, doc._id]
       doc = await doc.save()
       console.log(`============ Created role: ${doc}`)
-      if (doc) {
-        return doc
-      }
+      return doc
     } catch (error) {
       console.log(error)
       throw new Error(error)
