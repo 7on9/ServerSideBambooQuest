@@ -58,6 +58,7 @@ let QuestController = {
       let res = await newQuest.save()
       return res
     } catch (error) {
+      console.log(error)
       throw error
     }
   },
@@ -67,7 +68,11 @@ let QuestController = {
       if (user._id != quest.id_author) {
         throw error403
       }
-      quest = quest._doc ? { ...quest._doc, ...nQuest } : { ...quest, ...nQuest }
+      if (quest._doc) {
+        quest._doc = { ...quest._doc, ...nQuest }
+      } else {
+        quest = { ...quest, ...nQuest }
+      }
       await quest.save()
       return quest
     } catch (error) {

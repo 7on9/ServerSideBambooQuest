@@ -120,11 +120,16 @@ const UserController = {
           .update(user.password)
           .digest('hex')
       }
-      oldUser = oldUser._doc ? { ...oldUser._doc, ...user } : { ...oldUser._doc, ...user }
+      if (oldUser._doc) {
+        oldUser._doc = { ...oldUser._doc, ...user }
+      } else {
+        oldUser = { ...oldUser, ...user }
+      }
       oldUser.last_update = Date.now()
       let res = await oldUser.save()
       return res
     } catch (error) {
+      console.log(error)
       throw error
     }
   },

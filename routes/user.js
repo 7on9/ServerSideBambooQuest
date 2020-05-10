@@ -24,6 +24,7 @@ router
   .post('/login', async (req, res) => {
     try {
       let user = await login(req.body.email, req.body.password)
+      user.user.password = null
       res.status(200).json({
         token: user.token,
         info: user.user,
@@ -58,6 +59,7 @@ router
   .get('/info', async (req, res) => {
     let user = await Utility.verifyToken(req.headers.token)
     if (user) {
+      user.password = null
       res.status(200).json(user)
     } else {
       res.status(401).json(error401)

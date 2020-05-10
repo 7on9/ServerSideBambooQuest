@@ -34,7 +34,7 @@ router
       res.status(400).json(error400)
     }
   })
-  .put('/:id', async (req, res) => {
+  .post('/:id', async (req, res) => {
     try {
       let category = JSON.parse(req.body.category)
       let user = await Utility.verifyToken(req.headers.token)
