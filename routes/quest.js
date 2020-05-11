@@ -71,9 +71,13 @@ router
   .get('/', async (req, res) => {
     try {
       let { limit, skip, filter } = req.query
-      let quests = await getPublicQuests(limit, skip, filter)
+      limit = Number.parseInt(limit)
+      skip = Number.parseInt(skip)
+      filter = filter ? JSON.parse(filter) : {}
+      let quests = await getPublicQuests(limit || 25, skip || 0, filter)
       res.status(200).json(quests._doc || quests)
     } catch (error) {
+      console.log(error)
       res.status(400).json({
         ...error400,
         statusMessage: error,
@@ -89,7 +93,7 @@ router
         res.status(401).json(error401)
       }
       if (newQuest.title && newQuest.description && newQuest.is_public != null) {
-        newQuest.img_path = await Cloudinary.upload(newQuest.img_path)
+        newQuest.img_path = newQuest.img_path ? await Cloudinary.upload(newQuest.img_path) : null
         let result = await createQuest(newQuest, user)
         res.status(200).json(result)
       } else {

@@ -9,6 +9,7 @@ router
   .get('/', async (req, res) => {
     try {
       let { filter } = req.params
+      filter = filter ? JSON.parse(filter) : {}
       let categories = await get(filter)
       res.status(200).json(categories)
     } catch (error) {

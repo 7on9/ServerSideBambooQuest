@@ -29,7 +29,7 @@ const CategoryController = {
    * @param {Function} callback
    */
   get: async filter => {
-    filter = filter ? { ...filter, delete: false } : { delete: false }
+    filter = filter ? { ...filter, deleted: false } : { deleted: false }
     let categories = await Category.find(filter).exec()
     return categories
   },

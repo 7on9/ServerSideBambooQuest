@@ -1,5 +1,7 @@
 const Role = require('../models/role')
 const controllers = require('../controllers')
+const userControllers = require('../controllers/user')
+const questControllers = require('../controllers/quest')
 
 const roleController = {
   permissionDefine: {
@@ -70,6 +72,40 @@ const roleController = {
     }
   },
   /**
+   * @param {{ name, role, methods }} nRole
+   */
+  upsert: async nRole => {
+    let { name, role, methods } = nRole
+    if (!name || !role || !methods) {
+      throw Error('require parameter')
+    }
+    try {
+      let _role = await Role.findOne({ name }).exec()
+      if (_role) {
+        if (role._doc) {
+          _role._doc = { ..._role._doc, ...nRole }
+        } else {
+          _role = { ...role, ...nRole }
+        }
+      } else {
+        let newRole = new Role({
+          name,
+          role,
+          methods,
+        })
+        let doc = await newRole.save()
+        doc.roles = [...doc.roles, doc._id]
+        doc = await doc.save()
+        console.log(`============ Created role: ${doc}`)
+        return doc
+      }
+    } catch (error) {
+      console.log(error)
+      throw new Error(error)
+    }
+  },
+  /**
+   * TODO: Get role
    * @param {Object} filter
    */
   get: async filter => {
@@ -77,6 +113,7 @@ const roleController = {
       let roles = await Role.find(filter || {})
       return roles
     } catch (error) {
+      console.log(error)
       throw error
     }
   },
@@ -103,6 +140,25 @@ const roleController = {
       let methods = []
       Object.keys(controllers).forEach(controller => {
         let ctrler = controllers[controller]
+        Object.keys(ctrler).forEach(method => {
+          methods.push(`${controller}/${method}`)
+        })
+      })
+      return methods
+    } catch (error) {
+      console.log(error)
+      return []
+    }
+  },
+  getUserMethod: () => {
+    try {
+      let methods = []
+      let _controllers = {
+        quest: controllers.quest,
+        user: controllers.user,
+      }
+      Object.keys(_controllers).forEach(controller => {
+        let ctrler = _controllers[controller]
         Object.keys(ctrler).forEach(method => {
           methods.push(`${controller}/${method}`)
         })
