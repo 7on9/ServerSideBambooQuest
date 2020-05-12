@@ -11,6 +11,7 @@ module.exports = {
     PLAYER: 'player',
     ANS: 'ans',
     ROLE: 'role',
+    MIGRATION: 'migration',
     SCHEDULE_GAME_TICKET: 'schedule_game_ticket',
   },
 }

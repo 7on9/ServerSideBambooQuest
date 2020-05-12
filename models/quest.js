@@ -8,6 +8,7 @@ const Schema = mongoose.Schema,
 const questSchema = new mongoose.Schema(
   {
     id_author: ObjectId,
+    author: String,
     title: String,
     questions: [Questions.schema],
     description: String,
