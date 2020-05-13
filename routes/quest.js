@@ -121,21 +121,25 @@ router
       res.status(401)
     }
     if (_id && quiz && ans && correct_id && correct_point && incorrect_point && duration) {
-      img_path = await Cloudinary.upload(img_path)
-      let result = await addQuestion(
-        {
-          _id,
-          quiz,
-          ans,
-          correct_id,
-          correct_point,
-          incorrect_point,
-          duration,
-          img_path,
-        },
-        user._id
-      )
-      res.status(200).json(result)
+      try {
+        img_path = img_path ? await Cloudinary.upload(img_path) : null
+        let result = await addQuestion(
+          {
+            _id,
+            quiz,
+            ans,
+            correct_id,
+            correct_point,
+            incorrect_point,
+            duration,
+            img_path,
+          },
+          user._id
+        )
+        res.status(200).json(result)
+      } catch (error) {
+        res.status(400).json(error)
+      }
     } else {
       res.status(400).json(error400)
     }

@@ -38,14 +38,9 @@ const CategoryController = {
    * @param {Category} category
    */
   update: async category => {
-    let _category = await Category.findById(category._id).exec()
-    if (category._doc) {
-      _category._doc = { ..._category._doc, ...category }
-    } else {
-      _category = { ..._category, ...category }
-    }
     try {
-      let res = await _category.save()
+      let _category = await Category.findById(category._id).exec()
+      let res = await _category.set(category).save()
       return res
     } catch (error) {
       throw error
