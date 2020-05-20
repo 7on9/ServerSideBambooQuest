@@ -8,6 +8,7 @@ let {
   getPublicQuests,
   getQuestsOfUser,
   startQuest,
+  editQuest,
 } = require('../controllers/quest')
 let Utility = require('../common/utility')
 let { error400, error404, error401 } = require('../common/constant/error').CODE
@@ -95,6 +96,26 @@ router
       if (newQuest.title && newQuest.description && newQuest.is_public != null) {
         newQuest.img_path = newQuest.img_path ? await Cloudinary.upload(newQuest.img_path) : null
         let result = await createQuest(newQuest, user)
+        res.status(200).json(result)
+      } else {
+        res.status(400).json(error400)
+      }
+    } catch (error) {
+      res.status(400).json(error400)
+    }
+  })
+
+  //update quiz
+  .post('/update', async (req, res) => {
+    try {
+      let newQuest = req.body.newQuest
+      let user = await Utility.verifyToken(req.headers.token)
+      if (!user) {
+        res.status(401).json(error401)
+      }
+      if (newQuest) {
+        
+        let result = await editQuest(newQuest, user)
         res.status(200).json(result)
       } else {
         res.status(400).json(error400)
