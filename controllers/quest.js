@@ -109,6 +109,19 @@ let QuestController = {
       }
     }
   },
+  deleteQuestion: async (question, user) => {
+    try {
+      let quest = await Quest.findById(question._id)
+      if (user._id.toString() != quest.id_author.toString()) {
+        throw error403
+      }
+      quest.questions[question.id].deleted = true
+      let res = await quest.save()
+      return res
+    } catch (error) {
+      throw error
+    }
+  },
   //start quest/create game
   startQuest: async (token, idQuest) => {
     let user = await Utility.verifyToken(token)
