@@ -9,6 +9,7 @@ let {
   getQuestsOfUser,
   startQuest,
   editQuest,
+  deleteQuestion,
 } = require('../controllers/quest')
 let Utility = require('../common/utility')
 let { error400, error404, error401 } = require('../common/constant/error').CODE
@@ -114,7 +115,7 @@ router
         res.status(401).json(error401)
       }
       if (newQuest) {
-        
+
         let result = await editQuest(newQuest, user)
         res.status(200).json(result)
       } else {
@@ -165,6 +166,26 @@ router
       res.status(400).json(error400)
     }
   })
+
+  //delete question
+  .post('/delete-question', async (req, res) => {
+    try {
+      let { quest } = req.body
+      let user = await Utility.verifyToken(req.headers.token)
+      if (!user) {
+        res.status(401).json(error401)
+      }
+      if (quest) {
+        let result = await deleteQuestion(quest, user)
+        res.status(200).json(result)
+      } else {
+        res.status(400).json(error400)
+      }
+    } catch (error) {
+      res.status(400).json(error400)
+    }
+  })
+
   //add question
   .post('/like', async (req, res) => {
     //add later
