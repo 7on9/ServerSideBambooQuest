@@ -5,6 +5,7 @@ let Quest = require('../models/quest')
 let Question = require('../models/question')
 const { error400, error403, error401 } = require('../common/constant/error').CODE
 let Utility = require('../common/utility')
+let Cloudinary = require('./cloudinary')
 
 let QuestController = {
   /**
@@ -65,16 +66,14 @@ let QuestController = {
   editQuest: async (nQuest, user) => {
     try {
       let quest = await Quest.findById(nQuest._id)
-      if (user._id != quest.id_author) {
+      if (user._id.toString() != quest.id_author.toString()) {
         throw error403
       }
-      if (quest._doc) {
-        quest._doc = { ...quest._doc, ...nQuest }
-      } else {
-        quest = { ...quest, ...nQuest }
+      if (nQuest.img_path) {
+        nQuest.img_path = await Cloudinary.upload(nQuest.img_path)
       }
-      await quest.save()
-      return quest
+      let res = await quest.set({ ...nQuest }).save()
+      return res
     } catch (error) {
       throw error
     }
@@ -108,6 +107,19 @@ let QuestController = {
       } catch (error) {
         throw error
       }
+    }
+  },
+  deleteQuestion: async (question, user) => {
+    try {
+      let quest = await Quest.findById(question._id)
+      if (user._id.toString() != quest.id_author.toString()) {
+        throw error403
+      }
+      quest.questions[question.id].deleted = true
+      let res = await quest.save()
+      return res
+    } catch (error) {
+      throw error
     }
   },
   //start quest/create game
