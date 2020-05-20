@@ -5,7 +5,7 @@ const migrate = async () => {
     { name: 'user', roles: [], methods: Role.getUserMethod() },
   ]
   try {
-    await Role.upsert({ name: 'super-admin', roles: [], methods: Role.getAllMethod() })
+    roles.forEach(role => Role.upsert(role))
   } catch (error) {
     console.log(error)
   }
