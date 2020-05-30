@@ -78,6 +78,23 @@ let QuestController = {
       throw error
     }
   },
+  likeQuest: async (_id, user) => {
+    try {
+      let quest = await Quest.findOne({ _id: _id })
+
+      const userLiked = quest.like.find(i => i.toString() === user._id.toString())
+
+      if (!userLiked) {
+        quest.like.push(user._id)
+      }
+
+      let result = quest.save()
+
+      return result
+    } catch (error) {
+      throw error
+    }
+  },
   addQuestion: async (nQuestion, idUser) => {
     let quest = await Quest.findById(nQuestion._id)
     if (quest.id_author.toString() != idUser) {

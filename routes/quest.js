@@ -10,6 +10,7 @@ let {
   startQuest,
   editQuest,
   deleteQuestion,
+  likeQuest,
 } = require('../controllers/quest')
 let Utility = require('../common/utility')
 let { error400, error404, error401 } = require('../common/constant/error').CODE
@@ -115,7 +116,6 @@ router
         res.status(401).json(error401)
       }
       if (newQuest) {
-
         let result = await editQuest(newQuest, user)
         res.status(200).json(result)
       } else {
@@ -188,7 +188,14 @@ router
 
   //add question
   .post('/like', async (req, res) => {
-    //add later
+    let { _id } = req.body
+    let user = await Utility.verifyToken(req.headers.token)
+    if (!user) {
+      res.status(401).json(error401)
+    } else {
+      const result = await likeQuest(_id, user)
+      res.status(200).json(result)
+    }
   })
   //start game
   .post('/start', async (req, res) => {
