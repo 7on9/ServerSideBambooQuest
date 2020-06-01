@@ -53,6 +53,7 @@ let QuestController = {
       ...nQuest,
       questions: [],
       id_author: user._id,
+      author: user.email,
       deleted: false,
     })
     try {
