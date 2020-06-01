@@ -85,9 +85,18 @@ let QuestController = {
 
       const userLiked = quest.like.find(i => i.toString() === user._id.toString())
 
+      console.log(userLiked)
+
       if (!userLiked) {
         quest.like.push(user._id)
+      } else {
+        quest.like = quest.like.filter(i => i.toString() !== user._id.toString())
+        if (!quest.like) {
+          quest.like = []
+        }
       }
+
+      console.log(quest.like)
 
       let result = quest.save()
 
