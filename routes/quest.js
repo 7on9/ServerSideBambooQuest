@@ -64,10 +64,12 @@ router
   })
   .get('/:id', async (req, res) => {
     try {
-      let quest = await getPublicInfoQuest(req.params.id)
+      let user = await Utility.verifyToken(req.headers.token).catch(() => null)
+      let quest = await getPublicInfoQuest(req.params.id, user)
       res.status(200).json(quest._doc || quest)
     } catch (error) {
-      res.status(400).json(error)
+      console.log(error)
+      res.status(error.statusCode).json(error)
     }
   })
   // get all quest

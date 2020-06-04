@@ -30,7 +30,10 @@ let QuestController = {
    */
   getInfo: async (idUser, idQuest) => {
     try {
-      let quest = await Quest.findOne({ id_author: idUser, _id: idQuest }).exec()
+      let quest = await Quest.findOne({
+        id_author: idUser,
+        _id: idQuest,
+      }).exec()
       return quest
     } catch (error) {
       console.log(error)
@@ -123,7 +126,7 @@ let QuestController = {
         })
         for (let i = 0; i < nQuestion.ans.length; i++) {
           let newAns = new Ans({
-            _id: i + 1,
+            _id: i,
             content: nQuestion.ans[i],
           })
           newQuestion.ans.push(newAns)
@@ -142,7 +145,9 @@ let QuestController = {
       if (user._id.toString() != quest.id_author.toString()) {
         throw error403
       }
-      quest.questions[question.id].deleted = true
+      quest.questions = quest.questions.filter(q => q._id != question.id)
+      // quest.questions[question.id].deleted = true
+      console.log(quest.questions)
       let res = await quest.save()
       return res
     } catch (error) {
@@ -265,10 +270,13 @@ let QuestController = {
     }
   },
   //get info quests
-  getPublicInfoQuest: async _id => {
+  getPublicInfoQuest: async (_id, user) => {
     try {
-      let quest = await Quest.findOne({ _id, is_public: true, deleted: false }).exec()
+      let quest = await Quest.findOne({ _id, deleted: false }).exec()
       let retQuest = { ...quest._doc }
+      if ((!user || retQuest.id_author.toString() != user._id.toString()) && !retQuest.is_public) {
+        throw error403
+      }
       retQuest.questions = Array.from(quest.questions).map(v => v.toJSON())
       return retQuest
     } catch (error) {
@@ -284,7 +292,11 @@ let QuestController = {
   //get all quests
   getPublicQuests: async (limit, skip, filter) => {
     try {
-      let quests = await Quest.find({ ...filter, is_public: true, deleted: false })
+      let quests = await Quest.find({
+        ...filter,
+        is_public: true,
+        deleted: false,
+      })
         .limit(Math.min(limit, 100))
         .skip(skip)
         .exec()

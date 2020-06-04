@@ -17,7 +17,7 @@ module.exports = {
         role,
         confess: CFS,
         key: 'your name',
-        exp: Date.now() + 43200000 * 14, //exp in 14 days
+        exp: Date.now() + 43200000 * 30, //exp in 14 days
       }
       let secretKey = SECRET
       jwt.sign(payload, secretKey, { algorithm: 'HS256' }, (error, token) =>
