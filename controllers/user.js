@@ -24,9 +24,16 @@ const UserController = {
    * @param {String} name
    * @param {String} role
    */
-  register: async (email, password, name, role) => {
+  register: async (email, password, name, role, user) => {
     email = email.toLowerCase()
-    role = await Role.findOne(role ? { _id: role } : { name: 'user' })
+    var roleCreator = ''
+    if (user) {
+      roleCreator = await Role.findById(user.role).exec()
+      roleCreator = roleCreator.name
+    }
+    role = await Role.findOne(
+      role && roleCreator === 'super-admin' ? { _id: role } : { name: 'user' }
+    )
       .select('_id')
       .exec()
     let existEmail = await isExistEmail(email)

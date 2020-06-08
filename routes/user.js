@@ -7,6 +7,7 @@ router
   //verify data before call this api
   .post('/register', async (req, res) => {
     let { email, password, name, role } = req.body
+    let user = await Utility.verifyToken(req.headers.token).catch(() => null)
     if (!email || !password) {
       res.status(400).json({
         ...error400,
@@ -14,7 +15,7 @@ router
       })
     } else {
       try {
-        await register(email, password, name, role)
+        await register(email, password, name, role, user)
         res.status(201).json({ result: true })
       } catch (error) {
         res.status(400).json(error)
