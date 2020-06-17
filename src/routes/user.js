@@ -80,7 +80,7 @@ router
       res.status(401).json(error401)
     }
   })
-  .delete('/:id', async (req, res) => {
+  .get('/delete/:id', async (req, res) => {
     try {
       let { id } = req.params
       res.status(200).json({ result: await deleteAccount(req.headers.token, id) })

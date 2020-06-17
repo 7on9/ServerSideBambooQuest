@@ -6,7 +6,7 @@ let Question = require('../models/question')
 const { error400, error403, error401 } = require('../common/constant/error').CODE
 let Utility = require('../common/utility')
 let Cloudinary = require('./cloudinary')
-
+const { canExecAction } = require('./role')
 let QuestController = {
   /**
    * TODO get quests of user
@@ -303,6 +303,21 @@ let QuestController = {
     } catch (error) {
       console.log(error)
       throw error
+    }
+  },
+  deleteQuest: async (token, id) => {
+    try {
+      let user = await Utility.verifyToken(token)
+      let quest = await Quest.findById(id).exec()
+      let canExec = await canExecAction(user.role, 'user', 'deleteQuestion', user.role)
+      if (canExec || user._id == quest.id_author) {
+        let res = await Quest.updateOne({ _id: id }, { deleted: true }).exec()
+        return res ? true : false
+      }
+      return false
+    } catch (error) {
+      console.log(error)
+      return false
     }
   },
 }
