@@ -1,7 +1,7 @@
 const Role = require('../models/role')
-const controllers = require('../controllers')
-const userControllers = require('../controllers/user')
-const questControllers = require('../controllers/quest')
+const controllers = require('.')
+const userControllers = require('./user')
+const questControllers = require('./quest')
 
 const roleController = {
   permissionDefine: {

@@ -12,11 +12,11 @@ router
   .get('/analytic/:collection/:method', async (req, res) => {
     try {
       // Enable when ready
-      // let user = await Utility.verifyToken(req.headers.token)
-      // if (user && !canExecAction(user._id, thisController, 'analytic', null)) {
-      //   res.status(403).json(error403)
-      //   return
-      // }
+      let user = await Utility.verifyToken(req.headers.token)
+      if (user && !canExecAction(user._id, thisController, 'analytic', null)) {
+        res.status(403).json(error403)
+        return
+      }
       let { filter, limit, skip } = req.query
       filter = filter ? JSON.parse(filter) : null
       let { collection, method } = req.params
@@ -55,4 +55,5 @@ router
       res.status(400).json({ ...error400, errorMessage: error })
     }
   })
+  .delete('/collection')
 module.exports = router

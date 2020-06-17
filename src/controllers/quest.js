@@ -87,9 +87,6 @@ let QuestController = {
       let quest = await Quest.findOne({ _id: _id })
 
       const userLiked = quest.like.find(i => i.toString() === user._id.toString())
-
-      console.log(userLiked)
-
       if (!userLiked) {
         quest.like.push(user._id)
       } else {
@@ -98,11 +95,7 @@ let QuestController = {
           quest.like = []
         }
       }
-
-      console.log(quest.like)
-
-      let result = quest.save()
-
+      let result = await quest.save()
       return result
     } catch (error) {
       throw error
@@ -147,7 +140,7 @@ let QuestController = {
       }
       quest.questions = quest.questions.filter(q => q._id != question.id)
       // quest.questions[question.id].deleted = true
-      console.log(quest.questions)
+      // console.log(quest.questions)
       let res = await quest.save()
       return res
     } catch (error) {

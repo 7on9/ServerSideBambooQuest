@@ -219,4 +219,7 @@ router
       res.status(400).json(error400)
     }
   })
+  .delete('/:id', async (req, res) => {
+
+  })
 module.exports = router

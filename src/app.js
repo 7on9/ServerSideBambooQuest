@@ -32,7 +32,7 @@ app.use(function(req, res, next) {
     'Origin, X-Requested-With, Content-Type, Accept, token'
   )
   // Request methods you wish to allow
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE')
 
   // Request headers you wish to allow
   // res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
