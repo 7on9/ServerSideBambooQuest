@@ -117,6 +117,32 @@ const roleController = {
       throw error
     }
   },
+  /**
+   * TODO: Get role
+   * @param {String} _id
+   */
+  getById: async _id => {
+    try {
+      let role = await Role.findById(_id)
+      return role
+    } catch (error) {
+      console.log(error)
+      throw error
+    }
+  },
+  /**
+   * TODO: Get role
+   * @param {Object} filter
+   */
+  delete: async id => {
+    try {
+      let res = await Role.findByIdAndDelete(id).exec()
+      return res
+    } catch (error) {
+      console.log(error)
+      throw error
+    }
+  },
   canExecAction: async (roleId, controller, method, roleTarget) => {
     try {
       let userRole = await Role.findById(roleId)

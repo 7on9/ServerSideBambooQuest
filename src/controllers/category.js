@@ -34,6 +34,15 @@ const CategoryController = {
     return categories
   },
   /**
+   * TODO: Get categories
+   * @param {any} filter
+   * @param {Function} callback
+   */
+  getById: async id => {
+    let categories = await Category.findById(id).exec()
+    return categories
+  },
+  /**
    * TODO: Update category
    * @param {Category} category
    */

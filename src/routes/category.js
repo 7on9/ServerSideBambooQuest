@@ -1,5 +1,5 @@
 let router = require('express').Router()
-let { get, update, create } = require('../controllers/category')
+let { get, update, create, delete: deleteCategory, getById } = require('../controllers/category')
 let Utility = require('../common/utility')
 let { canExecAction } = require('../controllers/role')
 let { error400, error404, error401, error403 } = require('../common/constant/error').CODE
@@ -16,11 +16,20 @@ router
       res.status(400).json({ ...error400, errorMessage: error })
     }
   })
+  .get('/:id', async (req, res) => {
+    try {
+      let { id } = req.params
+      let category = await getById(id)
+      res.status(200).json(category)
+    } catch (error) {
+      res.status(400).json({ ...error400, errorMessage: error })
+    }
+  })
   .post('/', async (req, res) => {
     try {
       let newCategory = JSON.parse(req.body.newCategory)
       let user = await Utility.verifyToken(req.headers.token)
-      if (user && !canExecAction) {
+      if (user && !canExecAction(user.role, 'admin', 'create', null)) {
         res.status(403).json(error403)
         return
       }
@@ -39,7 +48,7 @@ router
     try {
       let category = JSON.parse(req.body.category)
       let user = await Utility.verifyToken(req.headers.token)
-      if (user && !canExecAction) {
+      if (user && !canExecAction(user.role, 'admin', 'update', null)) {
         res.status(403).json(error403)
         return
       }
@@ -52,6 +61,20 @@ router
       } else {
         res.status(400).json(error400)
       }
+    } catch (error) {
+      res.status(400).json(error400)
+    }
+  })
+  .get('/delete/:id', async (req, res) => {
+    try {
+      let { id } = req.params
+      let user = await Utility.verifyToken(req.headers.token)
+      if (user && !canExecAction(user.role, 'admin', 'delete', null)) {
+        res.status(403).json(error403)
+        return
+      }
+      let result = await deleteCategory(id)
+      res.status(200).json(result)
     } catch (error) {
       res.status(400).json(error400)
     }
