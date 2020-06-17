@@ -27,7 +27,7 @@ router
   })
   .post('/', async (req, res) => {
     try {
-      let newCategory = JSON.parse(req.body.newCategory)
+      let newCategory = req.body.newCategory
       let user = await Utility.verifyToken(req.headers.token)
       if (user && !canExecAction(user.role, 'admin', 'create', null)) {
         res.status(403).json(error403)
@@ -41,6 +41,7 @@ router
         res.status(400).json(error400)
       }
     } catch (error) {
+      console.log(error)
       res.status(400).json(error400)
     }
   })
