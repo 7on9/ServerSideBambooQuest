@@ -27,6 +27,7 @@ const roleController = {
     QUEST_PUBLIC_INFO: [
       'id_author',
       'title',
+      'author',
       'questions',
       'category',
       'img_path',
