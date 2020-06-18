@@ -17,15 +17,18 @@ router
   //getInfo - owner
   .get('/analytic/:collection/:method', async (req, res) => {
     try {
-      // Enable when ready
-      let user = await Utility.verifyToken(req.headers.token)
-      if (user && !canExecAction(user._id, thisController, 'analytic', null)) {
-        res.status(403).json(error403)
-        return
-      }
       let { filter, limit, skip } = req.query
-      filter = filter ? JSON.parse(filter) : null
       let { collection, method } = req.params
+
+      if (method != 'count') {
+        let user = await Utility.verifyToken(req.headers.token)
+        if (user && !canExecAction(user._id, thisController, 'analytic', null)) {
+          res.status(403).json(error403)
+          return
+        }
+      }
+      // Enable when ready
+      filter = filter ? JSON.parse(filter) : null
       collection = collection.toLowerCase()
       let func = analytic(collection)
       let result = await func[method]({ filter, limit, skip })
