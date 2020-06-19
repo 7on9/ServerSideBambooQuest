@@ -47,7 +47,7 @@ router
   })
   .post('/:id', async (req, res) => {
     try {
-      let category = JSON.parse(req.body.category)
+      let category = req.body.category
       let user = await Utility.verifyToken(req.headers.token)
       if (user && !canExecAction(user.role, 'admin', 'update', null)) {
         res.status(403).json(error403)
