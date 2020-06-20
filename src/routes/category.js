@@ -33,15 +33,8 @@ router
   .post('/', async (req, res) => {
     try {
       let newCategory = req.body.newCategory
-<<<<<<< HEAD:routes/category.js
-      console.log(newCategory)
-      let user = await Utility.verifyToken(req.headers.token)
-      console.log(newCategory)
-      if (user && !canExecAction) {
-=======
       let user = await Utility.verifyToken(req.headers.token)
       if (user && !canExecAction(user.role, 'admin', 'create', null)) {
->>>>>>> 44801ce7188895c36002ba5c0fa162e89a99a6f8:src/routes/category.js
         res.status(403).json(error403)
         return
       }
