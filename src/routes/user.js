@@ -1,7 +1,7 @@
-let router = require('express').Router()
-let { register, login, logout, update, deleteAccount } = require('../controllers/user')
-let Utility = require('../common/utility')
-let { error401, error400 } = require('../common/constant/error').CODE
+const router = require('express').Router()
+const { register, login, logout, update, deleteAccount } = require('../controllers/user')
+const Utility = require('../common/utility')
+const { error401, error400 } = require('../common/constant/error').CODE
 
 router
   //verify data before call this api
@@ -80,10 +80,10 @@ router
       res.status(401).json(error401)
     }
   })
-  .delete('/delete', async (req, res) => {
+  .get('/delete/:id', async (req, res) => {
     try {
-      await deleteAccount(req.headers.token)
-      res.status(200).json({ result: true })
+      let { id } = req.params
+      res.status(200).json({ result: await deleteAccount(req.headers.token, id) })
     } catch (error) {
       console.log(error)
       res.status(400).json({

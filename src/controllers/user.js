@@ -1,10 +1,11 @@
-let crypto = require('crypto')
-let User = require('../models/user')
-let Role = require('../models/role')
-let Utility = require('../common/utility')
-let Cloudinary = require('./cloudinary')
-let RoleController = require('../controllers/role')
+const crypto = require('crypto')
+const User = require('../models/user')
+const Role = require('../models/role')
+const Utility = require('../common/utility')
+const Cloudinary = require('./cloudinary')
+const RoleController = require('./role')
 const { ERROR } = require('../common/constant/event')
+const { canExecAction } = require('./role')
 
 const isExistEmail = async email => {
   try {
@@ -142,7 +143,7 @@ const UserController = {
     }
   },
   setRole: async (role, idUser, roleId) => {
-    RoleController.canExecAction(role, 'user', 'setRole', roleId)
+    // RoleController.canExecAction(role, 'user', 'setRole', roleId)
     try {
       let oldUser = await User.findById(idUser).exec()
       oldUser.role = roleId
@@ -153,11 +154,15 @@ const UserController = {
       throw error
     }
   },
-  deleteAccount: async token => {
+  deleteAccount: async (token, id) => {
     try {
       let user = await Utility.verifyToken(token)
-      let res = await User.find({ _id: user._id }, { $set: { deleted: true } }).exec()
-      return res ? true : false
+      let canExec = await canExecAction(user.role, 'user', 'deleteAccount', user.role)
+      if (canExec || user._id == id) {
+        let res = await User.updateOne({ _id: id }, { deleted: true }).exec()
+        return res ? true : false
+      }
+      return false
     } catch (error) {
       console.log(error)
       return false

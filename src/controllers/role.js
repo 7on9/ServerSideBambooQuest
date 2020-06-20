@@ -1,7 +1,7 @@
 const Role = require('../models/role')
-const controllers = require('../controllers')
-const userControllers = require('../controllers/user')
-const questControllers = require('../controllers/quest')
+const controllers = require('.')
+const userControllers = require('./user')
+const questControllers = require('./quest')
 
 const roleController = {
   permissionDefine: {
@@ -21,13 +21,16 @@ const roleController = {
       'name',
       'dob',
       'gender',
+      'deleted',
       'last_update',
       'game_history',
     ],
     QUEST_PUBLIC_INFO: [
       'id_author',
       'title',
+      'author',
       'questions',
+      'deleted',
       'category',
       'img_path',
       'is_public',
@@ -112,6 +115,32 @@ const roleController = {
     try {
       let roles = await Role.find(filter || {})
       return roles
+    } catch (error) {
+      console.log(error)
+      throw error
+    }
+  },
+  /**
+   * TODO: Get role
+   * @param {String} _id
+   */
+  getById: async _id => {
+    try {
+      let role = await Role.findById(_id)
+      return role
+    } catch (error) {
+      console.log(error)
+      throw error
+    }
+  },
+  /**
+   * TODO: Get role
+   * @param {Object} filter
+   */
+  delete: async id => {
+    try {
+      let res = await Role.findByIdAndDelete(id).exec()
+      return res
     } catch (error) {
       console.log(error)
       throw error

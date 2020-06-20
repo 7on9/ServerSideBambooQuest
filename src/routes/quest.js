@@ -10,6 +10,7 @@ let {
   startQuest,
   editQuest,
   deleteQuestion,
+  deleteQuest,
   likeQuest,
 } = require('../controllers/quest')
 let Utility = require('../common/utility')
@@ -217,6 +218,18 @@ router
       }
     } else {
       res.status(400).json(error400)
+    }
+  })
+  .get('/delete/:id', async (req, res) => {
+    try {
+      let { id } = req.params
+      res.status(200).json({ result: await deleteQuest(req.headers.token, id) })
+    } catch (error) {
+      console.log(error)
+      res.status(400).json({
+        ...error400,
+        errorMessage: error,
+      })
     }
   })
 module.exports = router

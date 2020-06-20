@@ -84,10 +84,16 @@ module.exports = {
   getCodeGame: idGame => {
     return mapCodeGame.get(idGame.toString())
   },
-  endGame: code => {
-    let idGame = mapIdGame.get(code)
-    mapIdGame.delete(code)
-    mapCodeGame.delete(idGame)
+  endGame: async idGame => {
+    try {
+      const gameCode = await mapCodeGame.get(idGame.toString())
+      console.log(mapIdGame)
+      mapIdGame.delete(gameCode.toString())
+      mapCodeGame.delete(idGame.toString())
+      console.log(mapIdGame)
+    } catch (error) {
+      console.log(error)
+    }
     // mapCodeGame.delete(code);
   },
 }

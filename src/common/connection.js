@@ -10,7 +10,7 @@ class Database {
       let time = 0
       let writeInterval = setInterval(() => {
         process.stdout.write(
-          `[===============Connecting to the mongodb server (${time++}s)===============]\r`
+          `[============Connecting to the mongodb server (${time++}s)============]\r`
         )
       }, 1000)
       await mongoose.connect(dbConstants.MONGODB_URL, {
