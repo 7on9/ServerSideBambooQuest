@@ -211,6 +211,7 @@ router
           idGame,
         })
       } catch (error) {
+        console.log(error)
         res.status(400).json({
           ...error400,
           statusMessage: error,
